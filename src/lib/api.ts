@@ -5,6 +5,14 @@ const API_BASE_URL = import.meta.env.PROD
   ? 'https://api.worketconnect.com/api/v1'
   : 'http://127.0.0.1:8000/api/v1';
 
+// Helper to unwrap API responses that may be wrapped in { status, data }
+export function unwrapResponse<T>(data: unknown): T {
+  if (data && typeof data === 'object' && 'status' in data && 'data' in data) {
+    return (data as { status: string; data: T }).data;
+  }
+  return data as T;
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {

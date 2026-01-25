@@ -1,4 +1,4 @@
-import api from '../lib/api';
+import api, { unwrapResponse } from '../lib/api';
 import type {
   Job,
   JobApplication,
@@ -24,23 +24,23 @@ export const jobService = {
     if (filters?.search) {
       params.append('search', filters.search);
     }
-    const response = await api.get<PaginatedResponse<Job>>(`/employer/jobs/?${params.toString()}`);
-    return response.data;
+    const response = await api.get(`/employer/jobs/?${params.toString()}`);
+    return unwrapResponse<PaginatedResponse<Job>>(response.data);
   },
 
   async getJob(id: number): Promise<Job> {
-    const response = await api.get<Job>(`/employer/jobs/${id}/`);
-    return response.data;
+    const response = await api.get(`/employer/jobs/${id}/`);
+    return unwrapResponse<Job>(response.data);
   },
 
   async createJob(data: JobFormData): Promise<Job> {
-    const response = await api.post<Job>('/employer/jobs/', data);
-    return response.data;
+    const response = await api.post('/employer/jobs/', data);
+    return unwrapResponse<Job>(response.data);
   },
 
   async updateJob(id: number, data: Partial<JobFormData>): Promise<Job> {
-    const response = await api.patch<Job>(`/employer/jobs/${id}/`, data);
-    return response.data;
+    const response = await api.patch(`/employer/jobs/${id}/`, data);
+    return unwrapResponse<Job>(response.data);
   },
 
   async deleteJob(id: number): Promise<void> {
@@ -48,8 +48,8 @@ export const jobService = {
   },
 
   async toggleJobStatus(id: number, isActive: boolean): Promise<Job> {
-    const response = await api.patch<Job>(`/employer/jobs/${id}/`, { is_active: isActive });
-    return response.data;
+    const response = await api.patch(`/employer/jobs/${id}/`, { is_active: isActive });
+    return unwrapResponse<Job>(response.data);
   },
 
   // Applications
@@ -68,17 +68,17 @@ export const jobService = {
       const prefix = filters.sort_order === 'desc' ? '-' : '';
       params.append('ordering', `${prefix}${filters.sort_by}`);
     }
-    const response = await api.get<PaginatedResponse<JobApplication>>(
+    const response = await api.get(
       `/employer/jobs/${jobId}/applications/?${params.toString()}`
     );
-    return response.data;
+    return unwrapResponse<PaginatedResponse<JobApplication>>(response.data);
   },
 
   async getApplication(jobId: number, applicationId: number): Promise<JobApplication> {
-    const response = await api.get<JobApplication>(
+    const response = await api.get(
       `/employer/jobs/${jobId}/applications/${applicationId}/`
     );
-    return response.data;
+    return unwrapResponse<JobApplication>(response.data);
   },
 
   async updateApplicationStatus(
@@ -86,11 +86,11 @@ export const jobService = {
     applicationId: number,
     status: string
   ): Promise<JobApplication> {
-    const response = await api.patch<JobApplication>(
+    const response = await api.patch(
       `/employer/jobs/${jobId}/applications/${applicationId}/status/`,
       { status }
     );
-    return response.data;
+    return unwrapResponse<JobApplication>(response.data);
   },
 
   async bulkUpdateApplicationStatus(jobId: number, data: BulkStatusUpdate): Promise<void> {
@@ -103,41 +103,41 @@ export const jobService = {
     applicationId: number,
     content: string
   ): Promise<ApplicationNote> {
-    const response = await api.post<ApplicationNote>(
+    const response = await api.post(
       `/employer/jobs/${jobId}/applications/${applicationId}/notes/`,
       { content }
     );
-    return response.data;
+    return unwrapResponse<ApplicationNote>(response.data);
   },
 
   async getApplicationNotes(jobId: number, applicationId: number): Promise<ApplicationNote[]> {
-    const response = await api.get<ApplicationNote[]>(
+    const response = await api.get(
       `/employer/jobs/${jobId}/applications/${applicationId}/notes/`
     );
-    return response.data;
+    return unwrapResponse<ApplicationNote[]>(response.data);
   },
 
   // AI Shortlisting
   async startAIShortlist(jobId: number, criteria: AIShortlistCriteria): Promise<AIShortlistSession> {
-    const response = await api.post<AIShortlistSession>(
+    const response = await api.post(
       `/employer/jobs/${jobId}/ai-shortlist/`,
       criteria
     );
-    return response.data;
+    return unwrapResponse<AIShortlistSession>(response.data);
   },
 
   async getAIShortlistSession(jobId: number, sessionId: number): Promise<AIShortlistSession> {
-    const response = await api.get<AIShortlistSession>(
+    const response = await api.get(
       `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/`
     );
-    return response.data;
+    return unwrapResponse<AIShortlistSession>(response.data);
   },
 
   async getAIShortlistResults(jobId: number, sessionId: number): Promise<AIShortlistResults> {
-    const response = await api.get<AIShortlistResults>(
+    const response = await api.get(
       `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/results/`
     );
-    return response.data;
+    return unwrapResponse<AIShortlistResults>(response.data);
   },
 
   async applyAIShortlist(
@@ -152,10 +152,10 @@ export const jobService = {
 
   async getLatestAISession(jobId: number): Promise<AIShortlistSession | null> {
     try {
-      const response = await api.get<AIShortlistSession>(
+      const response = await api.get(
         `/employer/jobs/${jobId}/ai-shortlist/latest/`
       );
-      return response.data;
+      return unwrapResponse<AIShortlistSession>(response.data);
     } catch {
       return null;
     }

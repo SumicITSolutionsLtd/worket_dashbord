@@ -1,5 +1,5 @@
-import api from '../lib/api';
-import type { User, AuthTokens, LoginRequest, ApiResponse } from '../types/api.types';
+import api, { unwrapResponse } from '../lib/api';
+import type { User, AuthTokens, LoginRequest } from '../types/api.types';
 
 interface LoginData {
   user: User;
@@ -8,12 +8,8 @@ interface LoginData {
 
 export const authService = {
   async login(data: LoginRequest): Promise<LoginData> {
-    const response = await api.post<ApiResponse<LoginData>>('/auth/login/', data);
-    // Handle wrapped response { status, data }
-    if (response.data.data) {
-      return response.data.data;
-    }
-    return response.data as unknown as LoginData;
+    const response = await api.post('/auth/login/', data);
+    return unwrapResponse<LoginData>(response.data);
   },
 
   async logout(refreshToken: string): Promise<void> {
@@ -21,23 +17,15 @@ export const authService = {
   },
 
   async getMe(): Promise<User> {
-    const response = await api.get<ApiResponse<User> | User>('/auth/me/');
-    // Handle wrapped response { status, data } or direct user object
-    if ('data' in response.data && 'status' in response.data) {
-      return (response.data as ApiResponse<User>).data;
-    }
-    return response.data as User;
+    const response = await api.get('/auth/me/');
+    return unwrapResponse<User>(response.data);
   },
 
   async refreshToken(refreshToken: string): Promise<{ access: string }> {
-    const response = await api.post<ApiResponse<{ access: string }> | { access: string }>('/auth/refresh/', {
+    const response = await api.post('/auth/refresh/', {
       refresh: refreshToken,
     });
-    // Handle wrapped response
-    if ('data' in response.data && 'status' in response.data) {
-      return (response.data as ApiResponse<{ access: string }>).data;
-    }
-    return response.data as { access: string };
+    return unwrapResponse<{ access: string }>(response.data);
   },
 };
 

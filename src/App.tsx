@@ -1,11 +1,18 @@
 import React, { useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider, QueryCache } from '@tanstack/react-query';
+import toast, { Toaster } from 'react-hot-toast';
 import AppRouter from './routes/AppRouter';
 import { useAuthStore } from './stores/authStore';
 import { authService } from './services/auth.service';
+import { extractErrorMessage } from './lib/utils';
 
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => {
+      // Show toast for query errors (API fetch failures)
+      toast.error(extractErrorMessage(error));
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: 1,
