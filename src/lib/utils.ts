@@ -132,16 +132,25 @@ export function extractErrorMessage(error: unknown): string {
     // Axios error with response
     if (err.response && typeof err.response === 'object') {
       const response = err.response as Record<string, unknown>;
-      const data = response.data as Record<string, unknown>;
+      const status = response.status as number;
+      const data = response.data;
 
-      if (data) {
-        if (typeof data.message === 'string') return data.message;
-        if (typeof data.detail === 'string') return data.detail;
-        if (typeof data.error === 'string') return data.error;
+      // Handle common HTTP status codes with friendly messages
+      if (status === 404) return 'Resource not found';
+      if (status === 401) return 'Please log in to continue';
+      if (status === 403) return 'You do not have permission to perform this action';
+      if (status === 500) return 'Server error. Please try again later.';
 
-        // Handle field errors
-        const fieldErrors = Object.entries(data)
-          .filter(([, v]) => Array.isArray(v) || typeof v === 'string')
+      // Only parse data if it's an object (not HTML string)
+      if (data && typeof data === 'object') {
+        const dataObj = data as Record<string, unknown>;
+        if (typeof dataObj.message === 'string') return dataObj.message;
+        if (typeof dataObj.detail === 'string') return dataObj.detail;
+        if (typeof dataObj.error === 'string') return dataObj.error;
+
+        // Handle field errors (only if values are strings or arrays)
+        const fieldErrors = Object.entries(dataObj)
+          .filter(([k, v]) => k !== 'status' && (Array.isArray(v) || typeof v === 'string'))
           .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
           .join('; ');
         if (fieldErrors) return fieldErrors;
