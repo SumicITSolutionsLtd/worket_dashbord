@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { EnvelopeSimple, Lock, Briefcase } from '@phosphor-icons/react';
+import { EnvelopeSimple, Lock } from '@phosphor-icons/react';
 import { Button, Input, Card } from '../components/ui';
 import { useAuth } from '../hooks/useAuth';
 import type { LoginRequest } from '../types/api.types';
@@ -29,9 +29,11 @@ const LoginPage: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <Briefcase weight="bold" className="w-8 h-8 text-white" />
-          </div>
+          <img
+            src="/logo1.png"
+            alt="Worket"
+            className="w-24 h-24 mx-auto mb-4 object-contain"
+          />
           <h1 className="text-2xl font-bold text-gray-900">Worket Employer</h1>
           <p className="text-gray-500">Sign in to your dashboard</p>
         </div>
