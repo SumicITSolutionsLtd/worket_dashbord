@@ -46,13 +46,23 @@ export function useAuth() {
       try {
         const response = await authService.login(data);
 
-        // Check if user is an employer
-        if (!response.user.is_employer && !response.user.is_staff) {
+        // Store tokens first so we can call getMe
+        localStorage.setItem('access_token', response.tokens.access);
+        localStorage.setItem('refresh_token', response.tokens.refresh);
+
+        // Fetch full user data including is_staff
+        const fullUserData = await authService.getMe();
+
+        // Check if user is an employer or admin
+        if (!fullUserData.is_employer && !fullUserData.is_staff) {
           toast.error('This dashboard is for employers only');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           return;
         }
 
-        login(response.user, response.tokens);
+        // Store the complete user data with is_staff
+        login(fullUserData, response.tokens);
         toast.success('Welcome back!');
 
         // Redirect to dashboard for both admins and employers
