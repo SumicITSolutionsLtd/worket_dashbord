@@ -17,7 +17,6 @@ import {
 } from '@phosphor-icons/react';
 import { Button, Input, Textarea, Select, Card } from '../components/ui';
 import { useMyCompanies, useCreateCompany, useUpdateCompany } from '../hooks/useCompany';
-import type { Company } from '../types/api.types';
 
 const INDUSTRIES = [
   { value: 'technology', label: 'Technology' },
