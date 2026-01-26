@@ -42,6 +42,60 @@ const currencyOptions = [
   { value: 'GBP', label: 'GBP' },
 ];
 
+// Moved outside JobForm to prevent re-creation on every render
+const ListInput = ({
+  label,
+  items,
+  setItems,
+  placeholder,
+  onUpdate,
+  onRemove,
+  onAdd,
+}: {
+  label: string;
+  items: ListItem[];
+  setItems: React.Dispatch<React.SetStateAction<ListItem[]>>;
+  placeholder: string;
+  onUpdate: (id: string, value: string, setList: React.Dispatch<React.SetStateAction<ListItem[]>>) => void;
+  onRemove: (id: string, setList: React.Dispatch<React.SetStateAction<ListItem[]>>) => void;
+  onAdd: (setList: React.Dispatch<React.SetStateAction<ListItem[]>>) => void;
+}) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      {label}
+    </label>
+    <div className="space-y-2">
+      {items.map((item) => (
+        <div key={item.id} className="flex gap-2">
+          <Input
+            value={item.value}
+            onChange={(e) => onUpdate(item.id, e.target.value, setItems)}
+            placeholder={placeholder}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="md"
+            onClick={() => onRemove(item.id, setItems)}
+            disabled={items.length === 1}
+          >
+            <Minus weight="bold" className="w-4 h-4" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={() => onAdd(setItems)}
+        leftIcon={<Plus weight="bold" className="w-4 h-4" />}
+      >
+        Add Item
+      </Button>
+    </div>
+  </div>
+);
+
 const JobForm: React.FC<JobFormProps> = ({
   initialData,
   onSubmit,
@@ -128,53 +182,6 @@ const JobForm: React.FC<JobFormProps> = ({
     );
   };
 
-  const ListInput = ({
-    label,
-    items,
-    setItems,
-    placeholder,
-  }: {
-    label: string;
-    items: ListItem[];
-    setItems: React.Dispatch<React.SetStateAction<ListItem[]>>;
-    placeholder: string;
-  }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-      </label>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.id} className="flex gap-2">
-            <Input
-              value={item.value}
-              onChange={(e) => updateListItem(item.id, e.target.value, setItems)}
-              placeholder={placeholder}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="md"
-              onClick={() => removeListItem(item.id, setItems)}
-              disabled={items.length === 1}
-            >
-              <Minus weight="bold" className="w-4 h-4" />
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => addListItem(setItems)}
-          leftIcon={<Plus weight="bold" className="w-4 h-4" />}
-        >
-          Add Item
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       {/* Basic Information */}
@@ -251,24 +258,36 @@ const JobForm: React.FC<JobFormProps> = ({
             items={responsibilities}
             setItems={setResponsibilities}
             placeholder="Enter a responsibility..."
+            onUpdate={updateListItem}
+            onRemove={removeListItem}
+            onAdd={addListItem}
           />
           <ListInput
             label="Requirements"
             items={requirements}
             setItems={setRequirements}
             placeholder="Enter a requirement..."
+            onUpdate={updateListItem}
+            onRemove={removeListItem}
+            onAdd={addListItem}
           />
           <ListInput
             label="Nice to Have"
             items={niceToHave}
             setItems={setNiceToHave}
             placeholder="Enter a nice-to-have skill..."
+            onUpdate={updateListItem}
+            onRemove={removeListItem}
+            onAdd={addListItem}
           />
           <ListInput
             label="Benefits"
             items={benefits}
             setItems={setBenefits}
             placeholder="Enter a benefit..."
+            onUpdate={updateListItem}
+            onRemove={removeListItem}
+            onAdd={addListItem}
           />
         </div>
       </Card>
