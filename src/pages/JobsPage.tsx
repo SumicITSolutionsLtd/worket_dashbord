@@ -21,23 +21,6 @@ const JobsPage: React.FC = () => {
 
   const jobs = data?.results || [];
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log('JobsPage - isAdmin:', isAdmin);
-    console.log('JobsPage - filters:', filters);
-    console.log('JobsPage - isLoading:', isLoading);
-    console.log('JobsPage - error:', error);
-    if (error) {
-      console.error('Jobs fetch error:', error);
-    }
-    if (data) {
-      console.log('Jobs data:', data);
-      console.log('Jobs count:', data.count);
-      console.log('Jobs results:', data.results?.length);
-      console.log('Jobs results array:', data.results);
-    }
-  }, [data, error, isLoading, isAdmin, filters]);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -87,18 +70,27 @@ const JobsPage: React.FC = () => {
           ))}
         </div>
       ) : jobs.length > 0 ? (
-        <div className="space-y-4">
-          {jobs.map((job) => (
-            <EmployerJobCard
-              key={job.id}
-              job={job}
-              onToggleStatus={(id, isActive) =>
-                toggleStatus.mutate({ id, isActive })
-              }
-              isToggling={toggleStatus.isPending}
-            />
-          ))}
-        </div>
+        <>
+          {/* Results count */}
+          {data && data.count > 0 && (
+            <div className="text-sm text-gray-500 mb-4">
+              Showing {jobs.length} of {data.count} {data.count === 1 ? 'job' : 'jobs'}
+              {data.next && ' (more pages available)'}
+            </div>
+          )}
+          <div className="space-y-4">
+            {jobs.map((job) => (
+              <EmployerJobCard
+                key={job.id}
+                job={job}
+                onToggleStatus={(id, isActive) =>
+                  toggleStatus.mutate({ id, isActive })
+                }
+                isToggling={toggleStatus.isPending}
+              />
+            ))}
+          </div>
+        </>
       ) : (
         <Card className="p-12">
           <div className="text-center">

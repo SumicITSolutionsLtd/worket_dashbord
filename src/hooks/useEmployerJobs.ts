@@ -13,20 +13,11 @@ export function useEmployerJobs(filters?: JobFilters) {
 
   return useQuery({
     queryKey: ['employerJobs', filters, isAdmin],
-    queryFn: async () => {
-      try {
-        const result = isAdmin 
-          ? await adminService.getAllJobs(filters)
-          : await jobService.getEmployerJobs(filters);
-        console.log('Jobs API Response:', result);
-        return result;
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        throw error;
-      }
-    },
+    queryFn: () => 
+      isAdmin 
+        ? adminService.getAllJobs(filters)
+        : jobService.getEmployerJobs(filters),
     staleTime: 1000 * 30, // 30 seconds
-    retry: 1,
   });
 }
 

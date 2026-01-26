@@ -71,24 +71,10 @@ export const adminService = {
     if (filters?.search) {
       params.append('search', filters.search);
     }
-    try {
-      const response = await api.get(`/jobs/?${params.toString()}`);
-      // The API returns paginated response directly: { count, next, previous, results }
-      // response.data already contains this structure
-      const result = response.data as PaginatedResponse<Job>;
-      console.log('Admin getAllJobs - Response:', result);
-      console.log('Admin getAllJobs - Count:', result.count);
-      console.log('Admin getAllJobs - Results length:', result.results?.length);
-      return result;
-    } catch (error: any) {
-      console.error('Admin getAllJobs - Error details:', {
-        message: error?.message,
-        response: error?.response?.data,
-        status: error?.response?.status,
-        config: error?.config,
-      });
-      throw error;
-    }
+    const response = await api.get(`/jobs/?${params.toString()}`);
+    // The API returns paginated response directly: { count, next, previous, results }
+    // response.data already contains this structure
+    return response.data as PaginatedResponse<Job>;
   },
 
   // Admin: View all applications across all jobs
