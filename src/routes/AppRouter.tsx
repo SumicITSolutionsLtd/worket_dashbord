@@ -19,6 +19,7 @@ import ReviewApplicationPage from '../pages/admin/ReviewApplicationPage';
 import AllUsersPage from '../pages/admin/AllUsersPage';
 import AllCompaniesPage from '../pages/admin/AllCompaniesPage';
 import AllCoursesPage from '../pages/admin/AllCoursesPage';
+import AllApplicationsPage from '../pages/admin/AllApplicationsPage';
 
 // Loading component
 const LoadingScreen = () => (
@@ -103,12 +104,12 @@ const AppRouter: React.FC = () => {
           <Route path="jobs/:id/applications" element={<JobApplicationsPage />} />
           <Route path="jobs/:id/ai-shortlist" element={<AIShortlistPage />} />
           
-          {/* Admin-only routes */}
           <Route path="admin/applications" element={<EmployerApplicationsPage />} />
           <Route path="admin/applications/:id" element={<ReviewApplicationPage />} />
           <Route path="admin/users" element={<AllUsersPage />} />
           <Route path="admin/companies" element={<AllCompaniesPage />} />
           <Route path="admin/courses" element={<AllCoursesPage />} />
+          <Route path="applications" element={<AllApplicationsPage />} />
         </Route>
 
         {/* Catch all - redirect to dashboard or login */}

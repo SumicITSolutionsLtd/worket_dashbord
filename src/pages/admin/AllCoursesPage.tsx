@@ -83,7 +83,9 @@ const AllCoursesPage: React.FC = () => {
                       {course.category?.name || course.category || '-'}
                     </td>
                     <td className="px-4 py-4 text-gray-600">
-                      {course.instructor?.full_name || course.instructor || '-'}
+                      {course.instructor?.full_name || 
+                       course.instructor?.name ||
+                       (typeof course.instructor === 'string' ? course.instructor : '-')}
                     </td>
                     <td className="px-4 py-4 text-gray-600">
                       {course.enrollments_count || course.enrollment_count || 0}

@@ -33,37 +33,37 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, isLoading }) => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       <StatsCard
         title="Total Jobs"
-        value={stats.total_jobs}
+        value={stats.total_jobs_posted ?? 0}
         icon={<Briefcase weight="bold" className="w-6 h-6" />}
         color="blue"
       />
       <StatsCard
         title="Active Jobs"
-        value={stats.active_jobs}
+        value={stats.active_jobs ?? 0}
         icon={<CheckCircle weight="bold" className="w-6 h-6" />}
         color="green"
       />
       <StatsCard
         title="Total Applications"
-        value={stats.total_applications}
+        value={stats.total_applications ?? 0}
         icon={<Users weight="bold" className="w-6 h-6" />}
         color="purple"
       />
       <StatsCard
         title="Pending"
-        value={stats.pending_applications}
+        value={stats.pending_applications ?? 0}
         icon={<Clock weight="bold" className="w-6 h-6" />}
         color="amber"
       />
       <StatsCard
         title="Shortlisted"
-        value={stats.shortlisted_applications}
+        value={stats.shortlisted_candidates ?? 0}
         icon={<Star weight="bold" className="w-6 h-6" />}
         color="cyan"
       />
       <StatsCard
         title="Hired"
-        value={stats.hired_applications}
+        value={stats.hired_candidates ?? 0}
         icon={<UserPlus weight="bold" className="w-6 h-6" />}
         color="rose"
       />
