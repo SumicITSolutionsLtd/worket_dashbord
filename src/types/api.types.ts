@@ -123,7 +123,7 @@ export interface JobApplication {
   cover_letter: string;
   resume: string | null;
   status: 'pending' | 'reviewed' | 'shortlisted' | 'interview' | 'accepted' | 'rejected';
-  ai_score?: number | null;
+  ai_score?: number | { overall_score: number; rank: number; recommendation: string } | null;
   ai_strengths?: string[];
   ai_weaknesses?: string[];
   notes?: ApplicationNote[];

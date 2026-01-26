@@ -68,10 +68,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             </div>
 
             {/* AI Score */}
-            {application.ai_score !== null && application.ai_score !== undefined && (
+            {application.ai_score && (
               <div className="flex items-center gap-1 bg-amber-100/80 text-amber-700 px-2 py-1 rounded-lg">
                 <Star weight="fill" className="w-4 h-4" />
-                <span className="font-bold text-sm">{application.ai_score}</span>
+                <span className="font-bold text-sm">
+                  {typeof application.ai_score === 'object'
+                    ? application.ai_score.overall_score
+                    : application.ai_score}
+                </span>
               </div>
             )}
           </div>
