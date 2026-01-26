@@ -29,26 +29,26 @@ export const jobService = {
   },
 
   async getJob(id: number): Promise<Job> {
-    const response = await api.get(`/employer/jobs/${id}/`);
+    const response = await api.get(`/jobs/${id}/`);
     return unwrapResponse<Job>(response.data);
   },
 
   async createJob(data: JobFormData): Promise<Job> {
-    const response = await api.post('/employer/jobs/', data);
+    const response = await api.post('/jobs/', data);
     return unwrapResponse<Job>(response.data);
   },
 
   async updateJob(id: number, data: Partial<JobFormData>): Promise<Job> {
-    const response = await api.patch(`/employer/jobs/${id}/`, data);
+    const response = await api.patch(`/jobs/${id}/`, data);
     return unwrapResponse<Job>(response.data);
   },
 
   async deleteJob(id: number): Promise<void> {
-    await api.delete(`/employer/jobs/${id}/`);
+    await api.delete(`/jobs/${id}/`);
   },
 
   async toggleJobStatus(id: number, isActive: boolean): Promise<Job> {
-    const response = await api.patch(`/employer/jobs/${id}/`, { is_active: isActive });
+    const response = await api.patch(`/jobs/${id}/`, { is_active: isActive });
     return unwrapResponse<Job>(response.data);
   },
 
