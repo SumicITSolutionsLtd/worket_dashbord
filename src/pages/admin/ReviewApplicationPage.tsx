@@ -129,7 +129,7 @@ const ReviewApplicationPage: React.FC = () => {
               >
                 {application.status}
               </Badge>
-              {application.is_pilot && (
+              {application.is_pilot_employer && (
                 <Badge variant="info">
                   <Sparkle weight="fill" className="w-3 h-3 mr-1" />
                   Pilot
@@ -173,7 +173,7 @@ const ReviewApplicationPage: React.FC = () => {
             <InfoRow
               icon={<Building weight="bold" className="w-5 h-5" />}
               label="Organization Type"
-              value={<span className="capitalize">{application.organization_type}</span>}
+              value={<span className="capitalize">{application.employer_type.replace('_', ' ')}</span>}
             />
             <InfoRow
               icon={<Building weight="bold" className="w-5 h-5" />}
@@ -193,17 +193,17 @@ const ReviewApplicationPage: React.FC = () => {
             <InfoRow
               icon={<EnvelopeSimple weight="bold" className="w-5 h-5" />}
               label="Email"
-              value={application.email}
+              value={application.business_email}
             />
             <InfoRow
               icon={<Phone weight="bold" className="w-5 h-5" />}
               label="Phone"
-              value={application.phone}
+              value={application.phone_number}
             />
             <InfoRow
               icon={<MapPin weight="bold" className="w-5 h-5" />}
               label="Address"
-              value={`${application.address}, ${application.district}`}
+              value={`${application.physical_address}, ${application.district}`}
             />
           </Card>
 
@@ -216,11 +216,11 @@ const ReviewApplicationPage: React.FC = () => {
           </Card>
 
           {/* Document */}
-          {application.document && (
+          {application.business_registration_doc && (
             <Card className="p-6">
               <h3 className="font-semibold text-gray-900 mb-4">Supporting Document</h3>
               <a
-                href={application.document}
+                href={application.business_registration_doc}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-primary-600 hover:text-primary-700"
@@ -257,7 +257,7 @@ const ReviewApplicationPage: React.FC = () => {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Submitted</span>
-                <span className="text-gray-900">{formatDate(application.submitted_at)}</span>
+                <span className="text-gray-900">{formatDate(application.created_at)}</span>
               </div>
               {application.reviewed_at && (
                 <div className="flex justify-between">

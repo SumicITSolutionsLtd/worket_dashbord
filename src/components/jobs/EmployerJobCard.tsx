@@ -51,11 +51,11 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
               <p className="text-sm text-gray-500">{job.company.name}</p>
             </div>
             <Badge
-              variant={job.is_active ? 'success' : 'default'}
+              variant={job.is_active !== false ? 'success' : 'default'}
               dot
-              pulse={job.is_active}
+              pulse={job.is_active !== false}
             >
-              {job.is_active ? 'Active' : 'Inactive'}
+              {job.is_active !== false ? 'Active' : 'Inactive'}
             </Badge>
           </div>
 
@@ -69,7 +69,7 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
               {getJobTypeLabel(job.job_type)}
             </Badge>
             <Badge variant="glass" size="sm">
-              {getExperienceLevelLabel(job.experience_level)}
+              {job.experience_level ? getExperienceLevelLabel(job.experience_level) : 'Not specified'}
             </Badge>
           </div>
 
@@ -77,12 +77,14 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-1">
               <Users weight="bold" className="w-4 h-4" />
-              <span>{job.applicants_count} applicants</span>
+              <span>{job.applicants_count || 0} applicants</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Clock weight="bold" className="w-4 h-4" />
-              <span>Posted {formatRelativeTime(job.posted_at)}</span>
-            </div>
+            {job.posted_at && (
+              <div className="flex items-center gap-1">
+                <Clock weight="bold" className="w-4 h-4" />
+                <span>Posted {formatRelativeTime(job.posted_at)}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -90,11 +92,11 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
       {/* Actions */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <button
-          onClick={() => onToggleStatus?.(job.id, !job.is_active)}
+          onClick={() => onToggleStatus?.(job.id, !(job.is_active !== false))}
           disabled={isToggling}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
         >
-          {job.is_active ? (
+          {job.is_active !== false ? (
             <>
               <ToggleRight weight="fill" className="w-5 h-5 text-green-500" />
               <span>Active</span>

@@ -5,39 +5,79 @@ import { Button, Card, SkeletonJobCard } from '../components/ui';
 import EmployerJobCard from '../components/jobs/EmployerJobCard';
 import JobFilters from '../components/jobs/JobFilters';
 import { useEmployerJobs, useToggleJobStatus } from '../hooks/useEmployerJobs';
+import { useAuth } from '../hooks/useAuth';
 import type { JobFilters as JobFiltersType } from '../types/employer.types';
 
 const JobsPage: React.FC = () => {
+  const { isAdmin } = useAuth();
   const [filters, setFilters] = useState<JobFiltersType>({
     status: 'all',
     job_type: '',
     search: '',
   });
 
-  const { data, isLoading } = useEmployerJobs(filters);
+  const { data, isLoading, error } = useEmployerJobs(filters);
   const toggleStatus = useToggleJobStatus();
 
   const jobs = data?.results || [];
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('JobsPage - isAdmin:', isAdmin);
+    console.log('JobsPage - filters:', filters);
+    console.log('JobsPage - isLoading:', isLoading);
+    console.log('JobsPage - error:', error);
+    if (error) {
+      console.error('Jobs fetch error:', error);
+    }
+    if (data) {
+      console.log('Jobs data:', data);
+      console.log('Jobs count:', data.count);
+      console.log('Jobs results:', data.results?.length);
+      console.log('Jobs results array:', data.results);
+    }
+  }, [data, error, isLoading, isAdmin, filters]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isAdmin ? 'All Jobs' : 'Jobs'}
+          </h1>
           <p className="text-gray-500">
-            Manage your job postings and view applications
+            {isAdmin 
+              ? 'View and manage all job postings across all employers'
+              : 'Manage your job postings and view applications'}
           </p>
         </div>
-        <Link to="/jobs/create">
-          <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
-            Create Job
-          </Button>
-        </Link>
+        {!isAdmin && (
+          <Link to="/jobs/create">
+            <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
+              Create Job
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
       <JobFilters filters={filters} onFilterChange={setFilters} />
+
+      {/* Error Display */}
+      {error && (
+        <Card className="p-6 border-red-200 bg-red-50/50">
+          <div className="text-center">
+            <p className="text-red-600 font-medium mb-2">Error loading jobs</p>
+            <p className="text-red-500 text-sm">
+              {error instanceof Error ? error.message : 'An unexpected error occurred'}
+            </p>
+            <p className="text-xs text-red-400 mt-2">
+              Check browser console for details
+            </p>
+          </div>
+        </Card>
+      )}
 
       {/* Jobs List */}
       {isLoading ? (
@@ -72,13 +112,17 @@ const JobsPage: React.FC = () => {
             <p className="text-gray-500 mb-6">
               {filters.search || filters.job_type || filters.status !== 'all'
                 ? 'Try adjusting your filters'
+                : isAdmin
+                ? 'No jobs found across all employers'
                 : 'Create your first job posting to start receiving applications'}
             </p>
-            <Link to="/jobs/create">
-              <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
-                Create Job
-              </Button>
-            </Link>
+            {!isAdmin && (
+              <Link to="/jobs/create">
+                <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
+                  Create Job
+                </Button>
+              </Link>
+            )}
           </div>
         </Card>
       )}

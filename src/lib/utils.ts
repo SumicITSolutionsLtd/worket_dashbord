@@ -82,12 +82,13 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 export function getStatusColor(status: string): 'default' | 'success' | 'warning' | 'danger' | 'info' {
-  switch (status) {
+  switch (status.toLowerCase()) {
     case 'accepted':
     case 'approved':
     case 'completed':
       return 'success';
     case 'pending':
+    case 'under_review':
     case 'processing':
       return 'warning';
     case 'rejected':

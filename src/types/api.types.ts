@@ -49,26 +49,26 @@ export interface Job {
   posted_by?: User;
   title: string;
   description: string;
-  responsibilities: string[];
-  requirements: string[];
-  nice_to_have: string[];
-  benefits: string[];
+  responsibilities?: string;
+  requirements?: string;
+  nice_to_have?: string;
+  benefits?: string;
   location: string;
   job_type: 'full-time' | 'part-time' | 'contract' | 'internship' | 'remote' | 'freelance';
-  experience_level: 'entry' | 'mid' | 'senior' | 'executive';
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: 'UGX' | 'USD' | 'EUR' | 'GBP';
-  salary_range: string;
-  skills_required: Skill[];
-  is_active: boolean;
-  is_featured: boolean;
-  applicants_count: number;
-  is_saved?: boolean;
-  has_applied?: boolean;
-  posted_at: string;
-  expires_at: string | null;
-  updated_at: string;
+  experience_level?: 'entry' | 'mid' | 'senior' | 'executive';
+  salary_min?: string | number | null;
+  salary_max?: string | number | null;
+  salary_currency?: 'UGX' | 'USD' | 'EUR' | 'GBP';
+  salary_range?: string;
+  skills_required?: Skill[];
+  is_active?: boolean;
+  is_featured?: boolean;
+  applicants_count?: number | string;
+  is_saved?: boolean | string;
+  has_applied?: boolean | string;
+  posted_at?: string;
+  expires_at?: string | null;
+  updated_at?: string;
 }
 
 export interface Profile {
@@ -96,15 +96,15 @@ export interface JobApplication {
   job: Job;
   applicant: User;
   applicant_profile?: Profile;
-  cover_letter: string;
-  resume: string | null;
+  cover_letter?: string;
+  resume?: string | null;
   status: 'pending' | 'reviewed' | 'shortlisted' | 'interview' | 'accepted' | 'rejected';
-  ai_score?: number | null;
+  ai_score?: number | string | null;
   ai_strengths?: string[];
   ai_weaknesses?: string[];
   notes?: ApplicationNote[];
-  applied_at: string;
-  updated_at: string;
+  applied_at?: string;
+  updated_at?: string;
 }
 
 export interface ApplicationNote {
@@ -139,12 +139,15 @@ export interface PaginatedResponse<T> {
 
 // Dashboard types
 export interface DashboardStats {
-  total_jobs: number;
+  total_jobs_posted: number;
   active_jobs: number;
   total_applications: number;
   pending_applications: number;
-  shortlisted_applications: number;
-  hired_applications: number;
+  shortlisted_candidates: number;
+  hired_candidates: number;
+  application_trend?: Record<string, unknown>[];
+  top_performing_jobs?: Record<string, unknown>[];
+  companies?: Record<string, unknown>[];
 }
 
 export interface RecentApplication {
@@ -167,60 +170,64 @@ export interface TopJob {
 
 // AI Shortlist types
 export interface AIShortlistCriteria {
-  skills_match_weight: number;
-  experience_weight: number;
-  education_weight: number;
-  location_weight: number;
+  required_skills_weight?: number;
+  experience_weight?: number;
+  education_weight?: number;
+  cover_letter_weight?: number;
+  must_have_skills?: string[];
+  top_candidates_to_shortlist?: number;
   custom_criteria?: string;
 }
 
 export interface AIShortlistSession {
   id: number;
   job: number;
+  job_title?: string;
+  initiated_by?: User;
   status: 'pending' | 'processing' | 'completed' | 'failed';
-  criteria: AIShortlistCriteria;
-  progress: number;
-  total_candidates: number;
-  processed_candidates: number;
+  custom_criteria?: string;
+  total_applications?: number;
+  processed_applications?: number;
+  progress_percentage?: string;
+  results_summary?: string;
+  error_message?: string;
   created_at: string;
-  completed_at: string | null;
+  completed_at?: string | null;
 }
 
-export interface AICandidate {
+export interface AIShortlistResult {
+  id: number;
   application_id: number;
-  applicant: User;
-  applicant_profile?: Profile;
-  overall_score: number;
-  skills_score: number;
-  experience_score: number;
-  education_score: number;
-  location_score: number;
-  strengths: string[];
-  weaknesses: string[];
-  recommendation: string;
+  applicant?: string;
+  overall_score: string;
+  detailed_scores?: string;
+  strengths?: string;
+  weaknesses?: string;
+  ai_recommendation?: string;
   rank: number;
+  created_at: string;
 }
 
 export interface AIShortlistResults {
   session: AIShortlistSession;
-  candidates: AICandidate[];
+  results: PaginatedResponse<AIShortlistResult>;
 }
 
 // Job form types
 export interface JobFormData {
+  company: number;
   title: string;
   description: string;
-  responsibilities: string[];
-  requirements: string[];
-  nice_to_have: string[];
-  benefits: string[];
+  responsibilities?: string;
+  requirements?: string;
+  nice_to_have?: string;
+  benefits?: string;
   location: string;
   job_type: Job['job_type'];
-  experience_level: Job['experience_level'];
-  salary_min: number | null;
-  salary_max: number | null;
-  salary_currency: Job['salary_currency'];
-  skills_required: number[];
-  is_active: boolean;
-  expires_at: string | null;
+  experience_level?: Job['experience_level'];
+  salary_min?: string | number | null;
+  salary_max?: string | number | null;
+  salary_currency?: Job['salary_currency'];
+  skill_ids?: number[];
+  expires_at?: string | null;
 }

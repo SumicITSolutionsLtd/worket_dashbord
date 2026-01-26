@@ -5,6 +5,7 @@ import { Button } from '../components/ui';
 import StatsGrid from '../components/dashboard/StatsGrid';
 import RecentApplicationsList from '../components/dashboard/RecentApplicationsList';
 import TopJobsWidget from '../components/dashboard/TopJobsWidget';
+import { useAuth } from '../hooks/useAuth';
 import {
   useDashboardStats,
   useRecentApplications,
@@ -12,6 +13,7 @@ import {
 } from '../hooks/useEmployer';
 
 const DashboardPage: React.FC = () => {
+  const { isAdmin } = useAuth();
   const { data: stats, isLoading: isLoadingStats } = useDashboardStats();
   const { data: recentApplications, isLoading: isLoadingApplications } =
     useRecentApplications(10);
@@ -24,7 +26,9 @@ const DashboardPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-500">
-            Welcome back! Here's an overview of your hiring activity.
+            {isAdmin 
+              ? 'Welcome back! Here\'s an overview of all platform activity.'
+              : 'Welcome back! Here\'s an overview of your hiring activity.'}
           </p>
         </div>
         <div className="flex gap-3">
@@ -33,14 +37,16 @@ const DashboardPage: React.FC = () => {
               variant="secondary"
               leftIcon={<Briefcase weight="bold" className="w-4 h-4" />}
             >
-              View Jobs
+              {isAdmin ? 'View All Jobs' : 'View Jobs'}
             </Button>
           </Link>
-          <Link to="/jobs/create">
-            <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
-              Create Job
-            </Button>
-          </Link>
+          {!isAdmin && (
+            <Link to="/jobs/create">
+              <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
+                Create Job
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

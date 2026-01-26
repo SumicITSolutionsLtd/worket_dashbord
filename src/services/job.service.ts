@@ -25,7 +25,8 @@ export const jobService = {
       params.append('search', filters.search);
     }
     const response = await api.get(`/employer/jobs/?${params.toString()}`);
-    return unwrapResponse<PaginatedResponse<Job>>(response.data);
+    // API returns paginated response directly: { count, next, previous, results }
+    return response.data as PaginatedResponse<Job>;
   },
 
   async getJob(id: number): Promise<Job> {
@@ -126,6 +127,13 @@ export const jobService = {
     return unwrapResponse<AIShortlistSession>(response.data);
   },
 
+  async getAIShortlistSessions(jobId: number): Promise<PaginatedResponse<AIShortlistSession>> {
+    const response = await api.get(
+      `/employer/jobs/${jobId}/ai-shortlist/sessions/`
+    );
+    return unwrapResponse<PaginatedResponse<AIShortlistSession>>(response.data);
+  },
+
   async getAIShortlistSession(jobId: number, sessionId: number): Promise<AIShortlistSession> {
     const response = await api.get(
       `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/`
@@ -133,32 +141,31 @@ export const jobService = {
     return unwrapResponse<AIShortlistSession>(response.data);
   },
 
-  async getAIShortlistResults(jobId: number, sessionId: number): Promise<AIShortlistResults> {
+  async getAIShortlistResults(
+    jobId: number,
+    sessionId: number,
+    filters?: { ordering?: string; page?: number; search?: string }
+  ): Promise<PaginatedResponse<any>> {
+    const params = new URLSearchParams();
+    if (filters?.ordering) params.append('ordering', filters.ordering);
+    if (filters?.page) params.append('page', filters.page.toString());
+    if (filters?.search) params.append('search', filters.search);
     const response = await api.get(
-      `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/results/`
+      `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/results/?${params.toString()}`
     );
-    return unwrapResponse<AIShortlistResults>(response.data);
+    return unwrapResponse<PaginatedResponse<any>>(response.data);
   },
 
   async applyAIShortlist(
     jobId: number,
     sessionId: number,
-    applicationIds: number[]
+    topN: number,
+    updateStatus: string = 'shortlisted'
   ): Promise<void> {
     await api.post(`/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/apply/`, {
-      application_ids: applicationIds,
+      top_n: topN,
+      update_status: updateStatus,
     });
-  },
-
-  async getLatestAISession(jobId: number): Promise<AIShortlistSession | null> {
-    try {
-      const response = await api.get(
-        `/employer/jobs/${jobId}/ai-shortlist/latest/`
-      );
-      return unwrapResponse<AIShortlistSession>(response.data);
-    } catch {
-      return null;
-    }
   },
 };
 

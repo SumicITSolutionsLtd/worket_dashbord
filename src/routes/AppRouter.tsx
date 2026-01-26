@@ -16,6 +16,9 @@ import JobApplicationsPage from '../pages/JobApplicationsPage';
 import AIShortlistPage from '../pages/AIShortlistPage';
 import EmployerApplicationsPage from '../pages/admin/EmployerApplicationsPage';
 import ReviewApplicationPage from '../pages/admin/ReviewApplicationPage';
+import AllUsersPage from '../pages/admin/AllUsersPage';
+import AllCompaniesPage from '../pages/admin/AllCompaniesPage';
+import AllCoursesPage from '../pages/admin/AllCoursesPage';
 
 // Loading component
 const LoadingScreen = () => (
@@ -63,7 +66,7 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
   if (isAuthenticated) {
     // Redirect based on user type
     if (user?.is_staff) {
-      return <Navigate to="/admin/applications" replace />;
+      return <Navigate to="/" replace />;
     }
     return <Navigate to="/" replace />;
   }
@@ -85,7 +88,7 @@ const AppRouter: React.FC = () => {
           }
         />
 
-        {/* Protected Employer Routes */}
+        {/* Protected Routes - Accessible by both employers and admins */}
         <Route
           element={
             <ProtectedRoute>
@@ -99,18 +102,13 @@ const AppRouter: React.FC = () => {
           <Route path="jobs/:id/edit" element={<EditJobPage />} />
           <Route path="jobs/:id/applications" element={<JobApplicationsPage />} />
           <Route path="jobs/:id/ai-shortlist" element={<AIShortlistPage />} />
-        </Route>
-
-        {/* Admin Routes */}
-        <Route
-          element={
-            <ProtectedRoute requireAdmin>
-              <EmployerLayout />
-            </ProtectedRoute>
-          }
-        >
+          
+          {/* Admin-only routes */}
           <Route path="admin/applications" element={<EmployerApplicationsPage />} />
           <Route path="admin/applications/:id" element={<ReviewApplicationPage />} />
+          <Route path="admin/users" element={<AllUsersPage />} />
+          <Route path="admin/companies" element={<AllCompaniesPage />} />
+          <Route path="admin/courses" element={<AllCoursesPage />} />
         </Route>
 
         {/* Catch all - redirect to dashboard or login */}

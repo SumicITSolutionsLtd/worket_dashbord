@@ -5,6 +5,12 @@ import {
   Briefcase,
   SignOut,
   List,
+  Users,
+  Brain,
+  Building,
+  ChartBar,
+  GraduationCap,
+  UserCircle,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -30,6 +36,22 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, end }) => (
     <span className="flex-shrink-0">{icon}</span>
     <span className="font-medium">{label}</span>
   </NavLink>
+);
+
+interface NavSectionProps {
+  title?: string;
+  children: React.ReactNode;
+}
+
+const NavSection: React.FC<NavSectionProps> = ({ title, children }) => (
+  <div className="space-y-1">
+    {title && (
+      <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        {title}
+      </p>
+    )}
+    {children}
+  </div>
 );
 
 interface EmployerSidebarProps {
@@ -64,31 +86,92 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" onClick={onClose}>
+      <nav className="flex-1 p-4 space-y-6 overflow-y-auto" onClick={onClose}>
         {isAdmin ? (
-          // Admin Navigation
+          // Admin Navigation - Show everything
           <>
-            <NavItem
-              to="/admin/applications"
-              icon={<List weight="bold" className="w-5 h-5" />}
-              label="Applications"
-              end
-            />
+            <NavSection title="Admin">
+              <NavItem
+                to="/admin/applications"
+                icon={<List weight="bold" className="w-5 h-5" />}
+                label="Employer Applications"
+              />
+            </NavSection>
+            <NavSection title="Main">
+              <NavItem
+                to="/"
+                icon={<House weight="bold" className="w-5 h-5" />}
+                label="Dashboard"
+                end
+              />
+              <NavItem
+                to="/jobs"
+                icon={<Briefcase weight="bold" className="w-5 h-5" />}
+                label="All Jobs"
+              />
+            </NavSection>
+            <NavSection title="Users & Data">
+              <NavItem
+                to="/admin/users"
+                icon={<UserCircle weight="bold" className="w-5 h-5" />}
+                label="All Users"
+              />
+              <NavItem
+                to="/admin/companies"
+                icon={<Building weight="bold" className="w-5 h-5" />}
+                label="All Companies"
+              />
+              <NavItem
+                to="/admin/courses"
+                icon={<GraduationCap weight="bold" className="w-5 h-5" />}
+                label="All Courses"
+              />
+            </NavSection>
+            <NavSection title="Applications">
+              <NavItem
+                to="/applications"
+                icon={<Users weight="bold" className="w-5 h-5" />}
+                label="All Applications"
+              />
+            </NavSection>
+            <NavSection title="Tools">
+              <NavItem
+                to="/ai-shortlist"
+                icon={<Brain weight="bold" className="w-5 h-5" />}
+                label="AI Shortlist"
+              />
+            </NavSection>
           </>
         ) : (
           // Employer Navigation
           <>
-            <NavItem
-              to="/"
-              icon={<House weight="bold" className="w-5 h-5" />}
-              label="Dashboard"
-              end
-            />
-            <NavItem
-              to="/jobs"
-              icon={<Briefcase weight="bold" className="w-5 h-5" />}
-              label="Jobs"
-            />
+            <NavSection title="Main">
+              <NavItem
+                to="/"
+                icon={<House weight="bold" className="w-5 h-5" />}
+                label="Dashboard"
+                end
+              />
+              <NavItem
+                to="/jobs"
+                icon={<Briefcase weight="bold" className="w-5 h-5" />}
+                label="Jobs"
+              />
+            </NavSection>
+            <NavSection title="Applications">
+              <NavItem
+                to="/applications"
+                icon={<Users weight="bold" className="w-5 h-5" />}
+                label="All Applications"
+              />
+            </NavSection>
+            <NavSection title="Tools">
+              <NavItem
+                to="/ai-shortlist"
+                icon={<Brain weight="bold" className="w-5 h-5" />}
+                label="AI Shortlist"
+              />
+            </NavSection>
           </>
         )}
       </nav>

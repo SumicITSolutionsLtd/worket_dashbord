@@ -55,12 +55,8 @@ export function useAuth() {
         login(response.user, response.tokens);
         toast.success('Welcome back!');
 
-        // Redirect based on user type
-        if (response.user.is_staff) {
-          navigate('/admin/applications');
-        } else {
-          navigate('/');
-        }
+        // Redirect to dashboard for both admins and employers
+        navigate('/');
       } catch (error) {
         toast.error(extractErrorMessage(error));
         throw error;

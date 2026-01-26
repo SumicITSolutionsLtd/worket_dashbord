@@ -1,15 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { jobService } from '../services/job.service';
+import { adminService } from '../services/admin.service';
+import { useAuthStore } from '../stores/authStore';
 import { extractErrorMessage } from '../lib/utils';
 import type { JobFormData } from '../types/api.types';
 import type { JobFilters } from '../types/employer.types';
 
 export function useEmployerJobs(filters?: JobFilters) {
+  const { user } = useAuthStore();
+  const isAdmin = user?.is_staff ?? false;
+
   return useQuery({
-    queryKey: ['employerJobs', filters],
-    queryFn: () => jobService.getEmployerJobs(filters),
+    queryKey: ['employerJobs', filters, isAdmin],
+    queryFn: async () => {
+      try {
+        const result = isAdmin 
+          ? await adminService.getAllJobs(filters)
+          : await jobService.getEmployerJobs(filters);
+        console.log('Jobs API Response:', result);
+        return result;
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        throw error;
+      }
+    },
     staleTime: 1000 * 30, // 30 seconds
+    retry: 1,
   });
 }
 
