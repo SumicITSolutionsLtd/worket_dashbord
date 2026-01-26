@@ -99,7 +99,6 @@ export interface Profile {
   headline: string;
   bio: string;
   location: string;
-  phone?: string;
   avatar: string | null;
   cover_image?: string | null;
   is_open_to_work?: boolean;

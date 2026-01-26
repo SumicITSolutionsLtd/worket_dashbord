@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MapPin, Star, FileText, ChatCircle, CaretDown, CaretUp, Briefcase, GraduationCap, Phone } from '@phosphor-icons/react';
+import { MapPin, Star, FileText, ChatCircle, CaretDown, CaretUp, Briefcase, GraduationCap } from '@phosphor-icons/react';
 import { Card, Badge } from '../ui';
 import ApplicationStatusSelect from './ApplicationStatusSelect';
 import { formatRelativeTime, getInitials } from '../../lib/utils';
@@ -167,14 +167,6 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
       {/* Expanded Profile Details */}
       {isExpanded && applicant_profile && (
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-6">
-          {/* Contact */}
-          {applicant_profile.phone && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Phone weight="bold" className="w-4 h-4" />
-              <span>{applicant_profile.phone}</span>
-            </div>
-          )}
-
           {/* Cover Letter */}
           {application.cover_letter && (
             <div>
