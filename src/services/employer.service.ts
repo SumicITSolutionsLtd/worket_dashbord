@@ -44,7 +44,7 @@ export const employerService = {
 
   // Skills
   async getSkills(): Promise<Skill[]> {
-    const response = await api.get('/skills/');
+    const response = await api.get('/profiles/skills/');
     const data = unwrapResponse<PaginatedResponse<Skill> | Skill[]>(response.data);
     // Handle both paginated and array responses
     if (Array.isArray(data)) {
