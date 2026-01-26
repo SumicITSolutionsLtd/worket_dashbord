@@ -14,9 +14,25 @@ import {
   Plus,
   PencilSimple,
   Image,
+  UserPlus,
+  Trash,
+  Crown,
+  ShieldCheck,
+  UserCircle,
+  UserList,
 } from '@phosphor-icons/react';
-import { Button, Input, Textarea, Select, Card } from '../components/ui';
-import { useMyCompanies, useCreateCompany, useUpdateCompany } from '../hooks/useCompany';
+import { Button, Input, Textarea, Select, Card, Badge, Modal } from '../components/ui';
+import {
+  useMyCompanies,
+  useCreateCompany,
+  useUpdateCompany,
+  useCompanyMembers,
+  useInviteMember,
+  useUpdateMemberRole,
+  useRemoveMember,
+} from '../hooks/useCompany';
+import type { CompanyMember, CompanyMemberRole } from '../types/api.types';
+import { getInitials } from '../lib/utils';
 
 const INDUSTRIES = [
   { value: 'technology', label: 'Technology' },
@@ -47,6 +63,38 @@ const EMPLOYEE_COUNTS = [
   { value: '1001+', label: '1000+ employees' },
 ];
 
+const MEMBER_ROLES = [
+  { value: 'admin', label: 'Admin', description: 'Full access to company settings and team' },
+  { value: 'recruiter', label: 'Recruiter', description: 'Can post jobs and manage applications' },
+  { value: 'member', label: 'Member', description: 'View-only access to company data' },
+];
+
+const getRoleIcon = (role: CompanyMemberRole) => {
+  switch (role) {
+    case 'owner':
+      return <Crown weight="fill" className="w-4 h-4 text-amber-500" />;
+    case 'admin':
+      return <ShieldCheck weight="fill" className="w-4 h-4 text-purple-500" />;
+    case 'recruiter':
+      return <UserList weight="bold" className="w-4 h-4 text-blue-500" />;
+    default:
+      return <UserCircle weight="bold" className="w-4 h-4 text-gray-500" />;
+  }
+};
+
+const getRoleBadgeVariant = (role: CompanyMemberRole) => {
+  switch (role) {
+    case 'owner':
+      return 'warning' as const;
+    case 'admin':
+      return 'info' as const;
+    case 'recruiter':
+      return 'default' as const;
+    default:
+      return 'glass' as const;
+  }
+};
+
 interface CompanyFormData {
   name: string;
   description: string;
@@ -66,6 +114,7 @@ const CompanyProfilePage: React.FC = () => {
   const createCompany = useCreateCompany();
   const updateCompany = useUpdateCompany();
 
+  const [activeTab, setActiveTab] = useState<'profile' | 'team'>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<CompanyFormData>({
     name: '',
@@ -90,6 +139,20 @@ const CompanyProfilePage: React.FC = () => {
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const company = companies?.[0];
+
+  // Team member hooks
+  const { data: members, isLoading: membersLoading } = useCompanyMembers(company?.id || 0);
+  const inviteMember = useInviteMember();
+  const updateMemberRole = useUpdateMemberRole();
+  const removeMember = useRemoveMember();
+
+  // Invite modal state
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<CompanyMemberRole>('recruiter');
+
+  // Check if current user can manage team (owner or admin)
+  const canManageTeam = members?.some(m => m.role === 'owner' || m.role === 'admin');
 
   // Initialize form data when company loads
   useEffect(() => {
@@ -215,6 +278,38 @@ const CompanyProfilePage: React.FC = () => {
     setCoverImage(null);
     setIsEditing(false);
     setErrors({});
+  };
+
+  const handleInviteMember = async () => {
+    if (!company || !inviteEmail.trim()) return;
+
+    try {
+      await inviteMember.mutateAsync({
+        companyId: company.id,
+        data: { email: inviteEmail.trim(), role: inviteRole },
+      });
+      setShowInviteModal(false);
+      setInviteEmail('');
+      setInviteRole('recruiter');
+    } catch {
+      // Error handled by hook
+    }
+  };
+
+  const handleUpdateRole = async (memberId: number, newRole: CompanyMemberRole) => {
+    if (!company) return;
+    await updateMemberRole.mutateAsync({
+      companyId: company.id,
+      memberId,
+      role: newRole,
+    });
+  };
+
+  const handleRemoveMember = async (memberId: number) => {
+    if (!company) return;
+    if (window.confirm('Are you sure you want to remove this team member?')) {
+      await removeMember.mutateAsync({ companyId: company.id, memberId });
+    }
   };
 
   if (isLoading) {
@@ -469,25 +564,68 @@ const CompanyProfilePage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Company Profile</h1>
           <p className="text-gray-500">Manage your company's profile and branding</p>
         </div>
-        <Button
-          onClick={() => setIsEditing(true)}
-          leftIcon={<PencilSimple weight="bold" className="w-4 h-4" />}
-        >
-          Edit Profile
-        </Button>
+        {activeTab === 'profile' && (
+          <Button
+            onClick={() => setIsEditing(true)}
+            leftIcon={<PencilSimple weight="bold" className="w-4 h-4" />}
+          >
+            Edit Profile
+          </Button>
+        )}
+        {activeTab === 'team' && canManageTeam && (
+          <Button
+            onClick={() => setShowInviteModal(true)}
+            leftIcon={<UserPlus weight="bold" className="w-4 h-4" />}
+          >
+            Invite Member
+          </Button>
+        )}
       </div>
 
-      <Card className="overflow-hidden">
-        {/* Cover Image */}
-        <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200">
-          {company.cover_image && (
-            <img
-              src={company.cover_image}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          )}
-        </div>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'profile'
+              ? 'bg-white shadow-sm text-gray-900'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Buildings weight="bold" className="w-4 h-4" />
+            Profile
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('team')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'team'
+              ? 'bg-white shadow-sm text-gray-900'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Users weight="bold" className="w-4 h-4" />
+            Team Members
+            {members && <span className="text-xs bg-gray-200 px-1.5 rounded-full">{members.length}</span>}
+          </div>
+        </button>
+      </div>
+
+      {/* Profile Tab Content */}
+      {activeTab === 'profile' && (
+        <Card className="overflow-hidden">
+          {/* Cover Image */}
+          <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200">
+            {company.cover_image && (
+              <img
+                src={company.cover_image}
+                alt="Cover"
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
 
         {/* Logo and Basic Info */}
         <div className="px-6 -mt-12 relative z-10">
@@ -658,6 +796,203 @@ const CompanyProfilePage: React.FC = () => {
           </div>
         </div>
       </Card>
+      )}
+
+      {/* Team Members Tab Content */}
+      {activeTab === 'team' && (
+        <Card className="p-6">
+          {membersLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <CircleNotch weight="bold" className="w-8 h-8 text-primary-500 animate-spin" />
+            </div>
+          ) : !members || members.length === 0 ? (
+            <div className="text-center py-12">
+              <Users weight="bold" className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No team members yet</h3>
+              <p className="text-gray-500 mb-4">Invite team members to help manage jobs and applications</p>
+              {canManageTeam && (
+                <Button onClick={() => setShowInviteModal(true)} leftIcon={<UserPlus weight="bold" className="w-4 h-4" />}>
+                  Invite First Member
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">Team Members</h3>
+                  <p className="text-sm text-gray-500">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-100">
+                {members.map((member: CompanyMember) => (
+                  <div key={member.id || member.user.id} className="flex items-center justify-between py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+                        {member.user.avatar ? (
+                          <img src={member.user.avatar} alt={member.user.full_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-gray-600 font-medium">{getInitials(member.user.full_name)}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-900">{member.user.full_name}</span>
+                          {getRoleIcon(member.role)}
+                        </div>
+                        <p className="text-sm text-gray-500">{member.user.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <Badge variant={getRoleBadgeVariant(member.role)} size="sm">
+                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                      </Badge>
+
+                      {/* Role change dropdown - only for non-owners, if current user can manage */}
+                      {canManageTeam && member.role !== 'owner' && member.id && (
+                        <select
+                          value={member.role}
+                          onChange={(e) => handleUpdateRole(member.id as number, e.target.value as CompanyMemberRole)}
+                          className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          disabled={updateMemberRole.isPending}
+                        >
+                          {MEMBER_ROLES.map(role => (
+                            <option key={role.value} value={role.value}>{role.label}</option>
+                          ))}
+                        </select>
+                      )}
+
+                      {/* Remove button - only for non-owners */}
+                      {canManageTeam && member.role !== 'owner' && member.id && (
+                        <button
+                          onClick={() => handleRemoveMember(member.id as number)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          disabled={removeMember.isPending}
+                        >
+                          <Trash weight="bold" className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Role Legend */}
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Role Permissions</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-amber-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Crown weight="fill" className="w-4 h-4 text-amber-500" />
+                      <span className="font-medium text-amber-800">Owner</span>
+                    </div>
+                    <p className="text-xs text-amber-600">Full control over company</p>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldCheck weight="fill" className="w-4 h-4 text-purple-500" />
+                      <span className="font-medium text-purple-800">Admin</span>
+                    </div>
+                    <p className="text-xs text-purple-600">Manage team & all settings</p>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserList weight="bold" className="w-4 h-4 text-blue-500" />
+                      <span className="font-medium text-blue-800">Recruiter</span>
+                    </div>
+                    <p className="text-xs text-blue-600">Post jobs & manage applications</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserCircle weight="bold" className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium text-gray-800">Member</span>
+                    </div>
+                    <p className="text-xs text-gray-600">View-only access</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Invite Member Modal */}
+      <Modal
+        isOpen={showInviteModal}
+        onClose={() => {
+          setShowInviteModal(false);
+          setInviteEmail('');
+          setInviteRole('recruiter');
+        }}
+        title="Invite Team Member"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            Invite a team member by their email. They must have an existing Worket account to be added.
+          </p>
+
+          <Input
+            label="Email Address"
+            type="email"
+            value={inviteEmail}
+            onChange={(e) => setInviteEmail(e.target.value)}
+            placeholder="colleague@company.com"
+            leftIcon={<EnvelopeSimple weight="bold" className="w-4 h-4" />}
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+            <div className="space-y-2">
+              {MEMBER_ROLES.map(role => (
+                <label
+                  key={role.value}
+                  className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    inviteRole === role.value
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="role"
+                    value={role.value}
+                    checked={inviteRole === role.value}
+                    onChange={(e) => setInviteRole(e.target.value as CompanyMemberRole)}
+                    className="text-primary-600"
+                  />
+                  <div>
+                    <p className="font-medium text-gray-900">{role.label}</p>
+                    <p className="text-sm text-gray-500">{role.description}</p>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowInviteModal(false);
+                setInviteEmail('');
+                setInviteRole('recruiter');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleInviteMember}
+              isLoading={inviteMember.isPending}
+              disabled={!inviteEmail.trim()}
+              leftIcon={<UserPlus weight="bold" className="w-4 h-4" />}
+            >
+              Send Invite
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

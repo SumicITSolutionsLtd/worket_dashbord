@@ -230,6 +230,24 @@ export interface AIShortlistResults {
   candidates: AICandidate[];
 }
 
+// Company Member types
+export type CompanyMemberRole = 'owner' | 'admin' | 'recruiter' | 'member';
+
+export interface CompanyMember {
+  id: number | null;
+  user: User;
+  role: CompanyMemberRole;
+  invited_by: User | null;
+  can_post_jobs: boolean;
+  can_manage_members: boolean;
+  created_at: string;
+}
+
+export interface InviteMemberData {
+  email: string;
+  role: CompanyMemberRole;
+}
+
 // Job form types
 export interface JobFormData {
   title: string;
