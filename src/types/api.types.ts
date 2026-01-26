@@ -208,7 +208,6 @@ export interface AIShortlistResults {
 
 // Job form types
 export interface JobFormData {
-  company: number;
   title: string;
   description: string;
   responsibilities: string[];

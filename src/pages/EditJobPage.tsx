@@ -56,7 +56,6 @@ const EditJobPage: React.FC = () => {
   }
 
   const initialData: Partial<JobFormData> = {
-    company: job.company.id,
     title: job.title,
     description: job.description,
     responsibilities: job.responsibilities,
