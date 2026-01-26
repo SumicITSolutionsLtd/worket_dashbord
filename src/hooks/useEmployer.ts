@@ -57,3 +57,19 @@ export function useSubmitEmployerApplication() {
     },
   });
 }
+
+export function useCreateSkill() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ name, category }: { name: string; category?: 'technical' | 'soft' | 'language' | 'other' }) =>
+      employerService.createSkill(name, category),
+    onSuccess: (newSkill) => {
+      queryClient.invalidateQueries({ queryKey: ['skills'] });
+      toast.success(`Skill "${newSkill.name}" added`);
+    },
+    onError: (error) => {
+      toast.error(extractErrorMessage(error));
+    },
+  });
+}

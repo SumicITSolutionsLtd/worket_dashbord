@@ -52,6 +52,11 @@ export const employerService = {
     }
     return data.results;
   },
+
+  async createSkill(name: string, category: Skill['category'] = 'technical'): Promise<Skill> {
+    const response = await api.post('/profiles/skills/', { name, category });
+    return unwrapResponse<Skill>(response.data);
+  },
 };
 
 export default employerService;

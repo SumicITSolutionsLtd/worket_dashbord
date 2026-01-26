@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Minus, X } from '@phosphor-icons/react';
+import { Plus, Minus, X, CircleNotch } from '@phosphor-icons/react';
 import { Button, Input, Textarea, Select, Card } from '../ui';
-import { useSkills } from '../../hooks/useEmployer';
+import { useSkills, useCreateSkill } from '../../hooks/useEmployer';
 import type { JobFormData, Skill } from '../../types/api.types';
 
 interface ListItem {
@@ -96,6 +96,13 @@ const ListInput = ({
   </div>
 );
 
+const skillCategoryOptions = [
+  { value: 'technical', label: 'Technical' },
+  { value: 'soft', label: 'Soft Skills' },
+  { value: 'language', label: 'Language' },
+  { value: 'other', label: 'Other' },
+];
+
 const JobForm: React.FC<JobFormProps> = ({
   initialData,
   onSubmit,
@@ -103,9 +110,12 @@ const JobForm: React.FC<JobFormProps> = ({
   submitLabel = 'Create Job',
 }) => {
   const { data: skills = [] } = useSkills();
+  const createSkill = useCreateSkill();
   const [selectedSkills, setSelectedSkills] = useState<number[]>(
     initialData?.skill_ids || []
   );
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillCategory, setNewSkillCategory] = useState<'technical' | 'soft' | 'language' | 'other'>('technical');
 
   const toListItems = (arr: string[]): ListItem[] =>
     arr.length > 0 ? arr.map(v => ({ id: generateId(), value: v })) : [{ id: generateId(), value: '' }];
@@ -180,6 +190,36 @@ const JobForm: React.FC<JobFormProps> = ({
         ? prev.filter((id) => id !== skillId)
         : [...prev, skillId]
     );
+  };
+
+  const handleAddSkill = async () => {
+    if (!newSkillName.trim()) return;
+
+    // Check if skill already exists
+    const existingSkill = skills.find(
+      s => s.name.toLowerCase() === newSkillName.trim().toLowerCase()
+    );
+
+    if (existingSkill) {
+      // Just select the existing skill
+      if (!selectedSkills.includes(existingSkill.id)) {
+        setSelectedSkills(prev => [...prev, existingSkill.id]);
+      }
+      setNewSkillName('');
+      return;
+    }
+
+    try {
+      const newSkill = await createSkill.mutateAsync({
+        name: newSkillName.trim(),
+        category: newSkillCategory,
+      });
+      // Auto-select the newly created skill
+      setSelectedSkills(prev => [...prev, newSkill.id]);
+      setNewSkillName('');
+    } catch {
+      // Error handled by hook
+    }
   };
 
   return (
@@ -295,6 +335,47 @@ const JobForm: React.FC<JobFormProps> = ({
       {/* Skills */}
       <Card className="p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Required Skills</h3>
+
+        {/* Add New Skill */}
+        <div className="mb-4 p-4 bg-gray-50 rounded-xl">
+          <p className="text-sm text-gray-600 mb-3">
+            Can't find a skill? Add it here:
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter skill name..."
+              value={newSkillName}
+              onChange={(e) => setNewSkillName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddSkill();
+                }
+              }}
+              className="flex-1"
+            />
+            <Select
+              options={skillCategoryOptions}
+              value={newSkillCategory}
+              onChange={(e) => setNewSkillCategory(e.target.value as typeof newSkillCategory)}
+              className="w-36"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleAddSkill}
+              disabled={!newSkillName.trim() || createSkill.isPending}
+            >
+              {createSkill.isPending ? (
+                <CircleNotch weight="bold" className="w-4 h-4 animate-spin" />
+              ) : (
+                <Plus weight="bold" className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Skills List */}
         <div className="flex flex-wrap gap-2">
           {skills.map((skill: Skill) => (
             <button
