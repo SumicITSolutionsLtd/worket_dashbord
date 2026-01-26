@@ -56,6 +56,7 @@ const EditJobPage: React.FC = () => {
   }
 
   const initialData: Partial<JobFormData> = {
+    company: job.company.id,
     title: job.title,
     description: job.description,
     responsibilities: job.responsibilities,
@@ -68,7 +69,7 @@ const EditJobPage: React.FC = () => {
     salary_min: job.salary_min,
     salary_max: job.salary_max,
     salary_currency: job.salary_currency,
-    skills_required: job.skills_required.map((s) => s.id),
+    skill_ids: job.skills_required.map((s) => s.id),
     is_active: job.is_active,
     expires_at: job.expires_at,
   };

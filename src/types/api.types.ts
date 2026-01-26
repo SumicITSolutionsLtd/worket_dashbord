@@ -208,6 +208,7 @@ export interface AIShortlistResults {
 
 // Job form types
 export interface JobFormData {
+  company: number;
   title: string;
   description: string;
   responsibilities: string[];
@@ -220,7 +221,7 @@ export interface JobFormData {
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: Job['salary_currency'];
-  skills_required: number[];
+  skill_ids: number[];
   is_active: boolean;
   expires_at: string | null;
 }

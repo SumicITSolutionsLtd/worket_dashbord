@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Plus, Minus, X } from '@phosphor-icons/react';
 import { Button, Input, Textarea, Select, Card } from '../ui';
 import { useSkills } from '../../hooks/useEmployer';
+import { useMyCompanies } from '../../hooks/useCompany';
 import type { JobFormData, Skill } from '../../types/api.types';
 
 interface ListItem {
@@ -103,8 +104,9 @@ const JobForm: React.FC<JobFormProps> = ({
   submitLabel = 'Create Job',
 }) => {
   const { data: skills = [] } = useSkills();
+  const { data: companies = [] } = useMyCompanies();
   const [selectedSkills, setSelectedSkills] = useState<number[]>(
-    initialData?.skills_required || []
+    initialData?.skill_ids || []
   );
 
   const toListItems = (arr: string[]): ListItem[] =>
@@ -123,12 +125,15 @@ const JobForm: React.FC<JobFormProps> = ({
     toListItems(initialData?.benefits || [])
   );
 
+  const companyOptions = companies.map(c => ({ value: String(c.id), label: c.name }));
+
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<JobFormData>({
     defaultValues: {
+      company: initialData?.company || (companies[0]?.id ?? 0),
       title: initialData?.title || '',
       description: initialData?.description || '',
       location: initialData?.location || '',
@@ -145,11 +150,12 @@ const JobForm: React.FC<JobFormProps> = ({
   const handleFormSubmit = (data: JobFormData) => {
     onSubmit({
       ...data,
+      company: Number(data.company),
       responsibilities: responsibilities.map(r => r.value).filter((r) => r.trim()),
       requirements: requirements.map(r => r.value).filter((r) => r.trim()),
       nice_to_have: niceToHave.map(r => r.value).filter((r) => r.trim()),
       benefits: benefits.map(r => r.value).filter((r) => r.trim()),
-      skills_required: selectedSkills,
+      skill_ids: selectedSkills,
     });
   };
 
@@ -188,6 +194,20 @@ const JobForm: React.FC<JobFormProps> = ({
       <Card className="p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Basic Information</h3>
         <div className="space-y-4">
+          {companyOptions.length > 0 && (
+            <Select
+              label="Company"
+              options={companyOptions}
+              {...register('company', { required: 'Company is required' })}
+              error={errors.company?.message}
+            />
+          )}
+          {companyOptions.length === 0 && (
+            <p className="text-sm text-red-500">
+              You need to create a company profile first before posting jobs.
+            </p>
+          )}
+
           <Input
             label="Job Title"
             {...register('title', { required: 'Title is required' })}
