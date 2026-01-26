@@ -1,5 +1,5 @@
-import React from 'react';
-import { MapPin, Star, FileText, ChatCircle } from '@phosphor-icons/react';
+import React, { useState } from 'react';
+import { MapPin, Star, FileText, ChatCircle, CaretDown, CaretUp, Briefcase, GraduationCap, Phone } from '@phosphor-icons/react';
 import { Card, Badge } from '../ui';
 import ApplicationStatusSelect from './ApplicationStatusSelect';
 import { formatRelativeTime, getInitials } from '../../lib/utils';
@@ -23,6 +23,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   isUpdating,
 }) => {
   const { applicant, applicant_profile } = application;
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <Card className={`p-4 ${isSelected ? 'ring-2 ring-primary-500' : ''}`}>
@@ -140,6 +141,127 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                   {w}
                 </Badge>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Expand/Collapse Button */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full mt-4 pt-3 border-t border-gray-100 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+      >
+        {isExpanded ? (
+          <>
+            <CaretUp weight="bold" className="w-4 h-4" />
+            Hide Details
+          </>
+        ) : (
+          <>
+            <CaretDown weight="bold" className="w-4 h-4" />
+            View Full Profile
+          </>
+        )}
+      </button>
+
+      {/* Expanded Profile Details */}
+      {isExpanded && applicant_profile && (
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-6">
+          {/* Contact */}
+          {applicant_profile.phone && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Phone weight="bold" className="w-4 h-4" />
+              <span>{applicant_profile.phone}</span>
+            </div>
+          )}
+
+          {/* Cover Letter */}
+          {application.cover_letter && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-2">Cover Letter</h5>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
+                {application.cover_letter}
+              </p>
+            </div>
+          )}
+
+          {/* Skills */}
+          {applicant_profile.skills && applicant_profile.skills.length > 0 && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-2">Skills</h5>
+              <div className="flex flex-wrap gap-2">
+                {applicant_profile.skills.map((skill) => (
+                  <Badge key={skill.id} variant="glass" size="sm">
+                    {skill.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Work Experience */}
+          {applicant_profile.work_experiences && applicant_profile.work_experiences.length > 0 && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Briefcase weight="bold" className="w-4 h-4" />
+                Work Experience
+              </h5>
+              <div className="space-y-3">
+                {applicant_profile.work_experiences.map((exp) => (
+                  <div key={exp.id} className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-gray-900">{exp.title}</p>
+                        <p className="text-sm text-gray-600">{exp.company_name}</p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {exp.start_date} - {exp.is_current ? 'Present' : exp.end_date}
+                      </span>
+                    </div>
+                    {exp.description && (
+                      <p className="text-sm text-gray-600 mt-2">{exp.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Education */}
+          {applicant_profile.educations && applicant_profile.educations.length > 0 && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <GraduationCap weight="bold" className="w-4 h-4" />
+                Education
+              </h5>
+              <div className="space-y-3">
+                {applicant_profile.educations.map((edu) => (
+                  <div key={edu.id} className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-medium text-gray-900">{edu.degree}</p>
+                        <p className="text-sm text-gray-600">{edu.institution}</p>
+                        {edu.field_of_study && (
+                          <p className="text-sm text-gray-500">{edu.field_of_study}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {edu.start_date} - {edu.is_current ? 'Present' : edu.end_date}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bio */}
+          {applicant_profile.bio && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-2">About</h5>
+              <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                {applicant_profile.bio}
+              </p>
             </div>
           )}
         </div>

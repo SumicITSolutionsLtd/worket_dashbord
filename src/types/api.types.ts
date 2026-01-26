@@ -71,24 +71,49 @@ export interface Job {
   updated_at: string;
 }
 
+export interface WorkExperience {
+  id: number;
+  title: string;
+  company_name: string;
+  location: string;
+  start_date: string;
+  end_date: string | null;
+  is_current: boolean;
+  description: string;
+}
+
+export interface Education {
+  id: number;
+  institution: string;
+  degree: string;
+  field_of_study: string;
+  start_date: string;
+  end_date: string | null;
+  is_current: boolean;
+  description: string;
+}
+
 export interface Profile {
   id: number;
-  user: User;
+  user?: User;
   headline: string;
   bio: string;
   location: string;
+  phone?: string;
   avatar: string | null;
-  cover_image: string | null;
-  is_open_to_work: boolean;
-  website: string;
-  linkedin_url: string;
-  github_url: string;
+  cover_image?: string | null;
+  is_open_to_work?: boolean;
+  website?: string;
+  linkedin_url?: string;
+  github_url?: string;
   skills: Skill[];
-  profile_views_count: number;
-  profile_strength: string;
-  profile_strength_percentage: number;
-  created_at: string;
-  updated_at: string;
+  work_experiences?: WorkExperience[];
+  educations?: Education[];
+  profile_views_count?: number;
+  profile_strength?: string;
+  profile_strength_percentage?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface JobApplication {
