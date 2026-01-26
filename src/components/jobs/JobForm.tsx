@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Minus, X } from '@phosphor-icons/react';
 import { Button, Input, Textarea, Select, Card } from '../ui';
 import { useSkills } from '../../hooks/useEmployer';
 import type { JobFormData, Skill } from '../../types/api.types';
+
+interface ListItem {
+  id: string;
+  value: string;
+}
+
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
 interface JobFormProps {
   initialData?: Partial<JobFormData>;
@@ -45,17 +52,21 @@ const JobForm: React.FC<JobFormProps> = ({
   const [selectedSkills, setSelectedSkills] = useState<number[]>(
     initialData?.skills_required || []
   );
-  const [responsibilities, setResponsibilities] = useState<string[]>(
-    initialData?.responsibilities || ['']
+
+  const toListItems = (arr: string[]): ListItem[] =>
+    arr.length > 0 ? arr.map(v => ({ id: generateId(), value: v })) : [{ id: generateId(), value: '' }];
+
+  const [responsibilities, setResponsibilities] = useState<ListItem[]>(
+    toListItems(initialData?.responsibilities || [])
   );
-  const [requirements, setRequirements] = useState<string[]>(
-    initialData?.requirements || ['']
+  const [requirements, setRequirements] = useState<ListItem[]>(
+    toListItems(initialData?.requirements || [])
   );
-  const [niceToHave, setNiceToHave] = useState<string[]>(
-    initialData?.nice_to_have || ['']
+  const [niceToHave, setNiceToHave] = useState<ListItem[]>(
+    toListItems(initialData?.nice_to_have || [])
   );
-  const [benefits, setBenefits] = useState<string[]>(
-    initialData?.benefits || ['']
+  const [benefits, setBenefits] = useState<ListItem[]>(
+    toListItems(initialData?.benefits || [])
   );
 
   const {
@@ -80,41 +91,34 @@ const JobForm: React.FC<JobFormProps> = ({
   const handleFormSubmit = (data: JobFormData) => {
     onSubmit({
       ...data,
-      responsibilities: responsibilities.filter((r) => r.trim()),
-      requirements: requirements.filter((r) => r.trim()),
-      nice_to_have: niceToHave.filter((r) => r.trim()),
-      benefits: benefits.filter((r) => r.trim()),
+      responsibilities: responsibilities.map(r => r.value).filter((r) => r.trim()),
+      requirements: requirements.map(r => r.value).filter((r) => r.trim()),
+      nice_to_have: niceToHave.map(r => r.value).filter((r) => r.trim()),
+      benefits: benefits.map(r => r.value).filter((r) => r.trim()),
       skills_required: selectedSkills,
     });
   };
 
-  const addListItem = (
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
+  const addListItem = useCallback((
+    setList: React.Dispatch<React.SetStateAction<ListItem[]>>
   ) => {
-    setList([...list, '']);
-  };
+    setList(prev => [...prev, { id: generateId(), value: '' }]);
+  }, []);
 
-  const removeListItem = (
-    index: number,
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
+  const removeListItem = useCallback((
+    id: string,
+    setList: React.Dispatch<React.SetStateAction<ListItem[]>>
   ) => {
-    if (list.length > 1) {
-      setList(list.filter((_, i) => i !== index));
-    }
-  };
+    setList(prev => prev.length > 1 ? prev.filter(item => item.id !== id) : prev);
+  }, []);
 
-  const updateListItem = (
-    index: number,
+  const updateListItem = useCallback((
+    id: string,
     value: string,
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
+    setList: React.Dispatch<React.SetStateAction<ListItem[]>>
   ) => {
-    const newList = [...list];
-    newList[index] = value;
-    setList(newList);
-  };
+    setList(prev => prev.map(item => item.id === id ? { ...item, value } : item));
+  }, []);
 
   const toggleSkill = (skillId: number) => {
     setSelectedSkills((prev) =>
@@ -131,8 +135,8 @@ const JobForm: React.FC<JobFormProps> = ({
     placeholder,
   }: {
     label: string;
-    items: string[];
-    setItems: React.Dispatch<React.SetStateAction<string[]>>;
+    items: ListItem[];
+    setItems: React.Dispatch<React.SetStateAction<ListItem[]>>;
     placeholder: string;
   }) => (
     <div>
@@ -140,18 +144,18 @@ const JobForm: React.FC<JobFormProps> = ({
         {label}
       </label>
       <div className="space-y-2">
-        {items.map((item, index) => (
-          <div key={index} className="flex gap-2">
+        {items.map((item) => (
+          <div key={item.id} className="flex gap-2">
             <Input
-              value={item}
-              onChange={(e) => updateListItem(index, e.target.value, items, setItems)}
+              value={item.value}
+              onChange={(e) => updateListItem(item.id, e.target.value, setItems)}
               placeholder={placeholder}
             />
             <Button
               type="button"
               variant="ghost"
               size="md"
-              onClick={() => removeListItem(index, items, setItems)}
+              onClick={() => removeListItem(item.id, setItems)}
               disabled={items.length === 1}
             >
               <Minus weight="bold" className="w-4 h-4" />
@@ -162,7 +166,7 @@ const JobForm: React.FC<JobFormProps> = ({
           type="button"
           variant="secondary"
           size="sm"
-          onClick={() => addListItem(items, setItems)}
+          onClick={() => addListItem(setItems)}
           leftIcon={<Plus weight="bold" className="w-4 h-4" />}
         >
           Add Item
