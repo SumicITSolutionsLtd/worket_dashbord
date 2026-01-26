@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { MagnifyingGlass, Building, CheckCircle } from '@phosphor-icons/react';
 import { Card, Input, Select, Badge, SkeletonTableRow } from '../../components/ui';
 import { useAllCompanies } from '../../hooks/useAdmin';
-import { formatDate } from '../../lib/utils';
 
 const industryOptions = [
   { value: 'all', label: 'All Industries' },

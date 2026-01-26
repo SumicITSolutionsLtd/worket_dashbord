@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 import { adminService } from '../services/admin.service';
 import { extractErrorMessage } from '../lib/utils';
 
-import type { AdminEmployerApplicationFilters, JobFilters, ApplicationFilters } from '../types/employer.types';
+import type { AdminEmployerApplicationFilters, ApplicationFilters } from '../types/employer.types';
 
 export function useEmployerApplications(filters?: AdminEmployerApplicationFilters) {
   return useQuery({

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useId } from 'react';
 import { Eye, EyeSlash, WarningCircle } from '@phosphor-icons/react';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -36,7 +36,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = type === 'password';
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     const inputType = isPasswordType ? (showPassword ? 'text' : 'password') : type;
 

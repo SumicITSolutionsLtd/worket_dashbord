@@ -1,5 +1,5 @@
 import api, { unwrapResponse } from '../lib/api';
-import type { PaginatedResponse, Job, JobApplication, Profile, Company, User } from '../types/api.types';
+import type { PaginatedResponse, Job, JobApplication, Profile, Company } from '../types/api.types';
 import type { EmployerApplication, AdminEmployerApplicationFilters, JobFilters, ApplicationFilters } from '../types/employer.types';
 
 export const adminService = {
@@ -139,6 +139,7 @@ export const adminService = {
   },
 
   // Admin: View all courses
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async getAllCourses(filters?: { search?: string; ordering?: string; page?: number }): Promise<PaginatedResponse<any>> {
     const params = new URLSearchParams();
     if (filters?.search) {
@@ -152,6 +153,7 @@ export const adminService = {
     }
     const response = await api.get(`/courses/?${params.toString()}`);
     // API returns paginated response directly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return response.data as PaginatedResponse<any>;
   },
 };

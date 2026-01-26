@@ -4,7 +4,7 @@ import { Eye, Building } from '@phosphor-icons/react';
 import { Card, Badge, Button, Select, SkeletonTableRow } from '../../components/ui';
 import { useEmployerApplications } from '../../hooks/useAdmin';
 import { formatDate, getStatusColor } from '../../lib/utils';
-import type { EmployerApplication } from '../../types/employer.types';
+import type { EmployerApplication, AdminEmployerApplicationFilters } from '../../types/employer.types';
 
 const statusOptions = [
   { value: 'all', label: 'All Status' },
@@ -14,8 +14,11 @@ const statusOptions = [
 ];
 
 const EmployerApplicationsPage: React.FC = () => {
-  const [statusFilter, setStatusFilter] = useState('pending');
-  const { data, isLoading } = useEmployerApplications(statusFilter);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'under_review' | 'approved' | 'rejected'>('pending');
+  const filters: AdminEmployerApplicationFilters = {
+    status: statusFilter === 'all' ? undefined : statusFilter,
+  };
+  const { data, isLoading } = useEmployerApplications(filters);
 
   const applications = data?.results || [];
 
@@ -30,7 +33,7 @@ const EmployerApplicationsPage: React.FC = () => {
         <Select
           options={statusOptions}
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
           fullWidth={false}
           className="w-40"
         />
@@ -78,7 +81,7 @@ const EmployerApplicationsPage: React.FC = () => {
                             {app.organization_name}
                           </p>
                           <p className="text-sm text-gray-500 capitalize">
-                            {app.organization_type}
+                            {app.employer_type.replace('_', ' ')}
                           </p>
                         </div>
                       </div>
@@ -98,7 +101,7 @@ const EmployerApplicationsPage: React.FC = () => {
                       </Badge>
                     </td>
                     <td className="px-4 py-4 text-gray-500 text-sm">
-                      {formatDate(app.submitted_at)}
+                      {formatDate(app.created_at)}
                     </td>
                     <td className="px-4 py-4 text-right">
                       <Link to={`/admin/applications/${app.id}`}>

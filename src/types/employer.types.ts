@@ -24,7 +24,7 @@ export interface EmployerApplication {
 
 export interface EmployerApplicationFormData {
   organization_name: string;
-  organization_type: EmployerApplication['organization_type'];
+  organization_type: EmployerApplication['employer_type'];
   industry: string;
   registration_number: string;
   phone: string;

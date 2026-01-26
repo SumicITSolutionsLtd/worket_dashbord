@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { CaretDown, WarningCircle } from '@phosphor-icons/react';
 
 interface SelectOption {
@@ -38,7 +38,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const selectId = id || generatedId;
 
     return (
       <div className={`${fullWidth ? 'w-full' : ''}`}>

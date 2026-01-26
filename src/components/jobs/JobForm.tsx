@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { Plus, Minus, X } from '@phosphor-icons/react';
 import { Button, Input, Textarea, Select, Card } from '../ui';
@@ -35,6 +35,78 @@ const currencyOptions = [
   { value: 'GBP', label: 'GBP' },
 ];
 
+// Helper to convert string to array
+const stringToArray = (str?: string): string[] => {
+  if (!str) return [''];
+  return str.split('\n').filter((s) => s.trim());
+};
+
+// Helper to convert array to string
+const arrayToString = (arr: string[]): string => {
+  return arr.filter((r) => r.trim()).join('\n');
+};
+
+// Move ListInput outside component to avoid creating during render
+interface ListInputProps {
+  label: string;
+  items: string[];
+  setItems: React.Dispatch<React.SetStateAction<string[]>>;
+  placeholder: string;
+}
+
+const ListInput: React.FC<ListInputProps> = ({ label, items, setItems, placeholder }) => {
+  const addListItem = () => {
+    setItems([...items, '']);
+  };
+
+  const removeListItem = (index: number) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateListItem = (index: number, value: string) => {
+    const newList = [...items];
+    newList[index] = value;
+    setItems(newList);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div className="space-y-2">
+        {items.map((item, index) => (
+          <div key={index} className="flex gap-2">
+            <Input
+              value={item}
+              onChange={(e) => updateListItem(index, e.target.value)}
+              placeholder={placeholder}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="md"
+              onClick={() => removeListItem(index)}
+              disabled={items.length === 1}
+            >
+              <Minus weight="bold" className="w-4 h-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={addListItem}
+          leftIcon={<Plus weight="bold" className="w-4 h-4" />}
+        >
+          Add Item
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const JobForm: React.FC<JobFormProps> = ({
   initialData,
   onSubmit,
@@ -43,19 +115,19 @@ const JobForm: React.FC<JobFormProps> = ({
 }) => {
   const { data: skills = [] } = useSkills();
   const [selectedSkills, setSelectedSkills] = useState<number[]>(
-    initialData?.skills_required || []
+    initialData?.skill_ids || []
   );
   const [responsibilities, setResponsibilities] = useState<string[]>(
-    initialData?.responsibilities || ['']
+    useMemo(() => stringToArray(initialData?.responsibilities), [initialData?.responsibilities])
   );
   const [requirements, setRequirements] = useState<string[]>(
-    initialData?.requirements || ['']
+    useMemo(() => stringToArray(initialData?.requirements), [initialData?.requirements])
   );
   const [niceToHave, setNiceToHave] = useState<string[]>(
-    initialData?.nice_to_have || ['']
+    useMemo(() => stringToArray(initialData?.nice_to_have), [initialData?.nice_to_have])
   );
   const [benefits, setBenefits] = useState<string[]>(
-    initialData?.benefits || ['']
+    useMemo(() => stringToArray(initialData?.benefits), [initialData?.benefits])
   );
 
   const {
@@ -72,7 +144,6 @@ const JobForm: React.FC<JobFormProps> = ({
       salary_min: initialData?.salary_min || null,
       salary_max: initialData?.salary_max || null,
       salary_currency: initialData?.salary_currency || 'UGX',
-      is_active: initialData?.is_active ?? true,
       expires_at: initialData?.expires_at || null,
     },
   });
@@ -80,40 +151,12 @@ const JobForm: React.FC<JobFormProps> = ({
   const handleFormSubmit = (data: JobFormData) => {
     onSubmit({
       ...data,
-      responsibilities: responsibilities.filter((r) => r.trim()),
-      requirements: requirements.filter((r) => r.trim()),
-      nice_to_have: niceToHave.filter((r) => r.trim()),
-      benefits: benefits.filter((r) => r.trim()),
-      skills_required: selectedSkills,
+      responsibilities: arrayToString(responsibilities),
+      requirements: arrayToString(requirements),
+      nice_to_have: arrayToString(niceToHave),
+      benefits: arrayToString(benefits),
+      skill_ids: selectedSkills,
     });
-  };
-
-  const addListItem = (
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
-  ) => {
-    setList([...list, '']);
-  };
-
-  const removeListItem = (
-    index: number,
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
-  ) => {
-    if (list.length > 1) {
-      setList(list.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateListItem = (
-    index: number,
-    value: string,
-    list: string[],
-    setList: React.Dispatch<React.SetStateAction<string[]>>
-  ) => {
-    const newList = [...list];
-    newList[index] = value;
-    setList(newList);
   };
 
   const toggleSkill = (skillId: number) => {
@@ -123,53 +166,6 @@ const JobForm: React.FC<JobFormProps> = ({
         : [...prev, skillId]
     );
   };
-
-  const ListInput = ({
-    label,
-    items,
-    setItems,
-    placeholder,
-  }: {
-    label: string;
-    items: string[];
-    setItems: React.Dispatch<React.SetStateAction<string[]>>;
-    placeholder: string;
-  }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        {label}
-      </label>
-      <div className="space-y-2">
-        {items.map((item, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              value={item}
-              onChange={(e) => updateListItem(index, e.target.value, items, setItems)}
-              placeholder={placeholder}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="md"
-              onClick={() => removeListItem(index, items, setItems)}
-              disabled={items.length === 1}
-            >
-              <Minus weight="bold" className="w-4 h-4" />
-            </Button>
-          </div>
-        ))}
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={() => addListItem(items, setItems)}
-          leftIcon={<Plus weight="bold" className="w-4 h-4" />}
-        >
-          Add Item
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

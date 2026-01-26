@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Brain } from '@phosphor-icons/react';
 import { Button, Card, Skeleton } from '../components/ui';
@@ -30,14 +30,22 @@ const AIShortlistPage: React.FC = () => {
   const applyShortlist = useApplyAIShortlist();
 
   // Pre-select top candidates when results load
-  useEffect(() => {
+  const topCandidateIds = useMemo(() => {
     if (results?.candidates) {
-      const topIds = results.candidates
+      return results.candidates
         .filter((c) => c.overall_score >= 70)
         .map((c) => c.application_id);
-      setSelectedCandidates(topIds);
     }
+    return [];
   }, [results?.candidates]);
+
+  // Update selected candidates when top candidates change (only once)
+  React.useEffect(() => {
+    if (topCandidateIds.length > 0 && selectedCandidates.length === 0) {
+      setSelectedCandidates([...topCandidateIds]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topCandidateIds.length]);
 
   const handleStartAnalysis = (criteria: AIShortlistCriteria) => {
     startAnalysis.mutate({ jobId, criteria });
@@ -108,7 +116,7 @@ const AIShortlistPage: React.FC = () => {
       </div>
 
       {/* Info */}
-      {job && job.applicants_count === 0 && (
+      {job && (typeof job.applicants_count === 'undefined' || Number(job.applicants_count) === 0) && (
         <Card className="p-6">
           <div className="text-center text-gray-500">
             <Brain weight="light" className="w-12 h-12 mx-auto mb-3 text-gray-300" />
@@ -119,7 +127,7 @@ const AIShortlistPage: React.FC = () => {
       )}
 
       {/* Criteria Form */}
-      {job && job.applicants_count > 0 && showCriteriaForm && (
+      {job && typeof job.applicants_count !== 'undefined' && Number(job.applicants_count) > 0 && showCriteriaForm && (
         <div className="max-w-xl">
           <CriteriaWeightsForm
             onSubmit={handleStartAnalysis}

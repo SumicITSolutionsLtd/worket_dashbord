@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { WarningCircle } from '@phosphor-icons/react';
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -22,7 +22,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     },
     ref
   ) => {
-    const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+    const generatedId = useId();
+    const textareaId = id || generatedId;
 
     return (
       <div className={`${fullWidth ? 'w-full' : ''}`}>

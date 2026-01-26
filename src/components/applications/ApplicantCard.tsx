@@ -83,7 +83,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                 <span>{applicant_profile.location}</span>
               </div>
             )}
-            <span>Applied {formatRelativeTime(application.applied_at)}</span>
+            {application.applied_at && (
+              <span>Applied {formatRelativeTime(application.applied_at)}</span>
+            )}
           </div>
 
           {/* Actions */}

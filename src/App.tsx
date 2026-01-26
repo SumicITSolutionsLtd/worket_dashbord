@@ -9,13 +9,27 @@ import { extractErrorMessage } from './lib/utils';
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error) => {
-      // Show toast for query errors (API fetch failures)
+      // Don't show toast for auth errors (401/403) - these are expected when not logged in
+      const axiosError = error as { response?: { status?: number } };
+      const status = axiosError?.response?.status;
+      if (status === 401 || status === 403) {
+        return; // Silently ignore auth errors
+      }
+      // Show toast for other query errors (API fetch failures)
       toast.error(extractErrorMessage(error));
     },
   }),
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: (failureCount, error) => {
+        // Don't retry on auth errors
+        const axiosError = error as { response?: { status?: number } };
+        const status = axiosError?.response?.status;
+        if (status === 401 || status === 403) {
+          return false;
+        }
+        return failureCount < 1;
+      },
       refetchOnWindowFocus: false,
     },
   },
@@ -41,7 +55,15 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
         } else {
           logout();
         }
-      } catch {
+      } catch (error) {
+        // Silently handle auth errors - expected when token is invalid/expired
+        // Don't log to console or show errors for expected 401s
+        const axiosError = error as { response?: { status?: number } };
+        const status = axiosError?.response?.status;
+        if (status !== 401 && status !== 403) {
+          // Only log unexpected errors
+          console.error('Auth initialization error:', error);
+        }
         logout();
       } finally {
         setLoading(false);

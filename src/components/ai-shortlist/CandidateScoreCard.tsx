@@ -24,35 +24,41 @@ const getScoreBgColor = (score: number): string => {
   return 'bg-red-100/80';
 };
 
+// Move ScoreBar outside component to avoid creating during render
+interface ScoreBarProps {
+  label: string;
+  score: number;
+}
+
+const ScoreBar: React.FC<ScoreBarProps> = ({ label, score }) => (
+  <div className="space-y-1">
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-gray-500">{label}</span>
+      <span className={`font-medium ${getScoreColor(score)}`}>{score}%</span>
+    </div>
+    <div className="w-full bg-gray-200 rounded-full h-1.5">
+      <div
+        className={`h-1.5 rounded-full transition-all duration-300 ${
+          score >= 80
+            ? 'bg-green-500'
+            : score >= 60
+            ? 'bg-primary-500'
+            : score >= 40
+            ? 'bg-amber-500'
+            : 'bg-red-500'
+        }`}
+        style={{ width: `${score}%` }}
+      />
+    </div>
+  </div>
+);
+
 const CandidateScoreCard: React.FC<CandidateScoreCardProps> = ({
   candidate,
   isSelected,
   onToggle,
 }) => {
   const { applicant, applicant_profile } = candidate;
-
-  const ScoreBar = ({ label, score }: { label: string; score: number }) => (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-500">{label}</span>
-        <span className={`font-medium ${getScoreColor(score)}`}>{score}%</span>
-      </div>
-      <div className="w-full bg-gray-200 rounded-full h-1.5">
-        <div
-          className={`h-1.5 rounded-full transition-all duration-300 ${
-            score >= 80
-              ? 'bg-green-500'
-              : score >= 60
-              ? 'bg-primary-500'
-              : score >= 40
-              ? 'bg-amber-500'
-              : 'bg-red-500'
-          }`}
-          style={{ width: `${score}%` }}
-        />
-      </div>
-    </div>
-  );
 
   return (
     <Card className={`p-4 ${isSelected ? 'ring-2 ring-primary-500' : ''}`}>

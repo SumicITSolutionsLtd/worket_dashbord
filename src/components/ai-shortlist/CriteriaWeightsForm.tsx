@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Brain, Info } from '@phosphor-icons/react';
 import { Button, Card, Textarea } from '../ui';
 import type { AIShortlistCriteria } from '../../types/api.types';
@@ -10,12 +10,45 @@ interface CriteriaWeightsFormProps {
 }
 
 const defaultCriteria: AIShortlistCriteria = {
-  skills_match_weight: 40,
+  required_skills_weight: 40,
   experience_weight: 30,
   education_weight: 20,
-  location_weight: 10,
+  cover_letter_weight: 10,
   custom_criteria: '',
 };
+
+// Move WeightSlider outside component to avoid creating during render
+interface WeightSliderProps {
+  label: string;
+  field: keyof AIShortlistCriteria;
+  description: string;
+  value: number;
+  onChange: (value: number) => void;
+}
+
+const WeightSlider: React.FC<WeightSliderProps> = ({
+  label,
+  value,
+  onChange,
+  description,
+}) => (
+  <div className="space-y-2">
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-bold text-gray-900">{value}%</span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="5"
+      value={value}
+      onChange={(e) => onChange(parseInt(e.target.value))}
+      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
+    />
+    <p className="text-xs text-gray-500">{description}</p>
+  </div>
+);
 
 const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
   onSubmit,
@@ -25,21 +58,22 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
   const [criteria, setCriteria] = useState<AIShortlistCriteria>(
     initialCriteria || defaultCriteria
   );
-  const [error, setError] = useState<string | null>(null);
 
-  const total =
-    criteria.skills_match_weight +
-    criteria.experience_weight +
-    criteria.education_weight +
-    criteria.location_weight;
+  const total = useMemo(() => {
+    return (
+      (criteria.required_skills_weight || 0) +
+      (criteria.experience_weight || 0) +
+      (criteria.education_weight || 0) +
+      (criteria.cover_letter_weight || 0)
+    );
+  }, [
+    criteria.required_skills_weight,
+    criteria.experience_weight,
+    criteria.education_weight,
+    criteria.cover_letter_weight,
+  ]);
 
-  useEffect(() => {
-    if (total !== 100) {
-      setError(`Weights must sum to 100 (currently ${total})`);
-    } else {
-      setError(null);
-    }
-  }, [total]);
+  const error = total !== 100 ? `Weights must sum to 100 (currently ${total})` : null;
 
   const handleWeightChange = (field: keyof AIShortlistCriteria, value: number) => {
     setCriteria((prev) => ({
@@ -54,35 +88,6 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
       onSubmit(criteria);
     }
   };
-
-  const WeightSlider = ({
-    label,
-    field,
-    description,
-  }: {
-    label: string;
-    field: keyof AIShortlistCriteria;
-    description: string;
-  }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-bold text-gray-900">
-          {criteria[field] as number}%
-        </span>
-      </div>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="5"
-        value={criteria[field] as number}
-        onChange={(e) => handleWeightChange(field, parseInt(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
-      />
-      <p className="text-xs text-gray-500">{description}</p>
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit}>
@@ -102,24 +107,32 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
 
         <div className="space-y-6 mb-6">
           <WeightSlider
-            label="Skills Match"
-            field="skills_match_weight"
+            label="Required Skills"
+            field="required_skills_weight"
+            value={criteria.required_skills_weight || 0}
+            onChange={(value) => handleWeightChange('required_skills_weight', value)}
             description="How well the candidate's skills match the job requirements"
           />
           <WeightSlider
             label="Experience"
             field="experience_weight"
+            value={criteria.experience_weight || 0}
+            onChange={(value) => handleWeightChange('experience_weight', value)}
             description="Relevant work experience and career progression"
           />
           <WeightSlider
             label="Education"
             field="education_weight"
+            value={criteria.education_weight || 0}
+            onChange={(value) => handleWeightChange('education_weight', value)}
             description="Educational background and qualifications"
           />
           <WeightSlider
-            label="Location"
-            field="location_weight"
-            description="Proximity to job location or remote work suitability"
+            label="Cover Letter"
+            field="cover_letter_weight"
+            value={criteria.cover_letter_weight || 0}
+            onChange={(value) => handleWeightChange('cover_letter_weight', value)}
+            description="Quality and relevance of the cover letter"
           />
         </div>
 

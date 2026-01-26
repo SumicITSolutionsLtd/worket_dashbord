@@ -68,8 +68,7 @@ const EditJobPage: React.FC = () => {
     salary_min: job.salary_min,
     salary_max: job.salary_max,
     salary_currency: job.salary_currency,
-    skills_required: job.skills_required.map((s) => s.id),
-    is_active: job.is_active,
+    skill_ids: job.skills_required?.map((s) => s.id) || [],
     expires_at: job.expires_at,
   };
 

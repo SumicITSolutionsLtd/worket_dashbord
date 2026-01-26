@@ -12,24 +12,31 @@ export function useDashboardStats() {
     queryFn: async () => {
       if (isAdmin) {
         // For admins, calculate stats from all data
+        // Get first page of jobs and applications to calculate stats
+        // Note: Status counts are approximations from first page
         const [jobsData, applicationsData] = await Promise.all([
           adminService.getAllJobs(),
           adminService.getAllApplications(),
         ]);
 
-        // Count active jobs
-        const activeJobs = jobsData.results.filter((job: any) => job.is_active !== false).length;
+        // Count active jobs from first page (approximation)
+        // For accurate count, we'd need to fetch all pages, but that's expensive
+        // The API should provide these stats, but for now we'll use what we have
+        const activeJobs = jobsData.results.filter((job: { is_active?: boolean }) => job.is_active !== false).length;
 
-        // Count applications by status
+        // Count applications by status from first page (approximation)
+        // The API should provide aggregated stats, but we'll calculate from first page
         const applications = applicationsData.results;
-        const pending = applications.filter((app: any) => app.status === 'pending').length;
-        const shortlisted = applications.filter((app: any) => app.status === 'shortlisted').length;
-        const hired = applications.filter((app: any) => app.status === 'hired').length;
+        const pending = applications.filter((app: { status: string }) => app.status === 'pending').length;
+        const shortlisted = applications.filter((app: { status: string }) => app.status === 'shortlisted').length;
+        const hired = applications.filter((app: { status: string }) => app.status === 'hired' || app.status === 'accepted').length;
 
+        // Use total counts from API for total_jobs_posted and total_applications
+        // Status counts are approximations from first page
         return {
-          total_jobs_posted: jobsData.count,
+          total_jobs_posted: jobsData.count || 0,
           active_jobs: activeJobs,
-          total_applications: applicationsData.count,
+          total_applications: applicationsData.count || 0,
           pending_applications: pending,
           shortlisted_candidates: shortlisted,
           hired_candidates: hired,

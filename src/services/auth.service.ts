@@ -26,6 +26,7 @@ export const authService = {
       // Check if email matches admin pattern (admin emails typically contain 'admin')
       const isAdminEmail = user.email?.toLowerCase().includes('admin') || 
                           user.email === 'admin2@worket.com';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (user as any).is_staff = isAdminEmail;
     }
     

@@ -6,8 +6,8 @@ import type {
   PaginatedResponse,
   JobFormData,
   AIShortlistSession,
-  AIShortlistResults,
   AIShortlistCriteria,
+  AIShortlistResult,
 } from '../types/api.types';
 import type { JobFilters, ApplicationFilters, BulkStatusUpdate } from '../types/employer.types';
 
@@ -134,6 +134,15 @@ export const jobService = {
     return unwrapResponse<PaginatedResponse<AIShortlistSession>>(response.data);
   },
 
+  async getLatestAISession(jobId: number): Promise<AIShortlistSession | null> {
+    const sessions = await this.getAIShortlistSessions(jobId);
+    if (sessions.results && sessions.results.length > 0) {
+      // Return the most recent session (first in the list, assuming API returns sorted)
+      return sessions.results[0];
+    }
+    return null;
+  },
+
   async getAIShortlistSession(jobId: number, sessionId: number): Promise<AIShortlistSession> {
     const response = await api.get(
       `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/`
@@ -145,7 +154,7 @@ export const jobService = {
     jobId: number,
     sessionId: number,
     filters?: { ordering?: string; page?: number; search?: string }
-  ): Promise<PaginatedResponse<any>> {
+  ): Promise<PaginatedResponse<AIShortlistResult>> {
     const params = new URLSearchParams();
     if (filters?.ordering) params.append('ordering', filters.ordering);
     if (filters?.page) params.append('page', filters.page.toString());
@@ -153,17 +162,17 @@ export const jobService = {
     const response = await api.get(
       `/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/results/?${params.toString()}`
     );
-    return unwrapResponse<PaginatedResponse<any>>(response.data);
+    return unwrapResponse<PaginatedResponse<AIShortlistResult>>(response.data);
   },
 
   async applyAIShortlist(
     jobId: number,
     sessionId: number,
-    topN: number,
+    applicationIds: number[],
     updateStatus: string = 'shortlisted'
   ): Promise<void> {
     await api.post(`/employer/jobs/${jobId}/ai-shortlist/sessions/${sessionId}/apply/`, {
-      top_n: topN,
+      application_ids: applicationIds,
       update_status: updateStatus,
     });
   },

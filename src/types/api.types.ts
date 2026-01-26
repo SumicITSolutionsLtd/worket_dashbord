@@ -186,9 +186,13 @@ export interface AIShortlistSession {
   initiated_by?: User;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   custom_criteria?: string;
+  criteria?: AIShortlistCriteria;
   total_applications?: number;
+  total_candidates?: number;
   processed_applications?: number;
+  processed_candidates?: number;
   progress_percentage?: string;
+  progress?: number;
   results_summary?: string;
   error_message?: string;
   created_at: string;
@@ -206,6 +210,21 @@ export interface AIShortlistResult {
   ai_recommendation?: string;
   rank: number;
   created_at: string;
+}
+
+export interface AICandidate {
+  application_id: number;
+  applicant: User;
+  applicant_profile?: Profile;
+  overall_score: number;
+  skills_score: number;
+  experience_score: number;
+  education_score: number;
+  location_score: number;
+  rank: number;
+  recommendation?: string;
+  strengths: string[];
+  weaknesses: string[];
 }
 
 export interface AIShortlistResults {

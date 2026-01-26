@@ -8,7 +8,6 @@ import {
   Users,
   Brain,
   Building,
-  ChartBar,
   GraduationCap,
   UserCircle,
 } from '@phosphor-icons/react';
@@ -136,7 +135,7 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
             </NavSection>
             <NavSection title="Tools">
               <NavItem
-                to="/ai-shortlist"
+                to="/jobs"
                 icon={<Brain weight="bold" className="w-5 h-5" />}
                 label="AI Shortlist"
               />
@@ -167,7 +166,7 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
             </NavSection>
             <NavSection title="Tools">
               <NavItem
-                to="/ai-shortlist"
+                to="/jobs"
                 icon={<Brain weight="bold" className="w-5 h-5" />}
                 label="AI Shortlist"
               />

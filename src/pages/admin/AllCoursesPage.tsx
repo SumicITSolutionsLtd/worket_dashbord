@@ -64,7 +64,7 @@ const AllCoursesPage: React.FC = () => {
               {isLoading ? (
                 [...Array(5)].map((_, i) => <SkeletonTableRow key={i} columns={5} />)
               ) : courses.length > 0 ? (
-                courses.map((course: any) => (
+                courses.map((course: { id: number; title?: string; name?: string; description?: string; category?: { name: string } | string; instructor?: { full_name?: string; name?: string; email?: string } | string; enrollments_count?: number; enrollment_count?: number; created_at?: string }) => (
                   <tr key={course.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
@@ -80,12 +80,18 @@ const AllCoursesPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-gray-600">
-                      {course.category?.name || course.category || '-'}
+                      {course.category 
+                        ? (typeof course.category === 'object' 
+                            ? course.category.name 
+                            : course.category)
+                        : '-'}
                     </td>
                     <td className="px-4 py-4 text-gray-600">
-                      {course.instructor?.full_name || 
-                       course.instructor?.name ||
-                       (typeof course.instructor === 'string' ? course.instructor : '-')}
+                      {course.instructor 
+                        ? (typeof course.instructor === 'object' 
+                            ? (course.instructor.full_name || course.instructor.name || course.instructor.email || '-')
+                            : course.instructor)
+                        : '-'}
                     </td>
                     <td className="px-4 py-4 text-gray-600">
                       {course.enrollments_count || course.enrollment_count || 0}

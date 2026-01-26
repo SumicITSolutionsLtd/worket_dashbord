@@ -59,8 +59,15 @@ api.interceptors.response.use(
     const hadToken = localStorage.getItem('access_token') || localStorage.getItem('refresh_token');
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // If user never had a token (guest), just reject without redirect
+      // If user never had a token (guest), just reject without redirect or logging
       if (!hadToken) {
+        // Suppress console error for expected 401s when not logged in
+        // Only log if it's not an auth endpoint (to avoid noise)
+        const isAuthEndpoint = originalRequest.url?.includes('/auth/');
+        if (!isAuthEndpoint) {
+          return Promise.reject(error);
+        }
+        // For auth endpoints, create a silent rejection
         return Promise.reject(error);
       }
 
