@@ -1,15 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../stores/authStore';
+import { isPlatformAdmin } from '../lib/auth';
 import { jobService } from '../services/job.service';
 import { extractErrorMessage } from '../lib/utils';
 import type { JobFormData } from '../types/api.types';
 import type { JobFilters } from '../types/employer.types';
 
 export function useEmployerJobs(filters?: JobFilters) {
+  const user = useAuthStore((s) => s.user);
+  const enabled = !!user?.is_employer && !isPlatformAdmin(user);
   return useQuery({
     queryKey: ['employerJobs', filters],
     queryFn: () => jobService.getEmployerJobs(filters),
     staleTime: 1000 * 30, // 30 seconds
+    enabled,
   });
 }
 

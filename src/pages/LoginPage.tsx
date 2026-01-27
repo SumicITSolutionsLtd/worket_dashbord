@@ -53,6 +53,7 @@ const LoginPage: React.FC = () => {
               error={errors.email?.message}
               placeholder="you@company.com"
               leftIcon={<EnvelopeSimple weight="bold" className="w-4 h-4" />}
+              autoComplete="email"
             />
 
             <Input
@@ -62,6 +63,7 @@ const LoginPage: React.FC = () => {
               error={errors.password?.message}
               placeholder="Enter your password"
               leftIcon={<Lock weight="bold" className="w-4 h-4" />}
+              autoComplete="current-password"
             />
 
             <Button type="submit" fullWidth isLoading={isLoading}>

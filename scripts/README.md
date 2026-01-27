@@ -9,6 +9,42 @@ The dashboard treats a user as **platform admin** if:
 
 The **Worket API does not currently expose `is_staff`** in login or `/auth/me/` responses. Until the backend adds it (or another “staff/role” field), the dashboard uses the email list: add known staff emails to `PLATFORM_ADMIN_EMAILS` (e.g. `['admin@worket.ug']`) so those users see the Admin Panel. The backend may use `is_staff`, a role, or user id internally; the dashboard only sees what the API returns.
 
+### Why admin gets 403 on company/job detail (verify, feature)
+
+The admin panel calls the **same** endpoints as employers:
+
+- `GET /companies/:id/` – company detail (e.g. admin “View” or verify/feature page)
+- `PATCH /companies/:id/` – verify/feature a company
+- `GET /jobs/:id/` – job detail
+- `PATCH /jobs/:id/` – active/feature a job
+
+Right now the backend returns **403 Forbidden** when a **staff** user tries to access a company or job they don’t own. The Company/Job views are permissioned for **owner only**, so the admin account from the backend team is correct for admin-only endpoints (e.g. approve applications), but it cannot read or update other users’ companies/jobs.
+
+**For the admin panel’s Verify/Feature/View to work, the backend must allow staff users to:**
+
+- **GET** and **PATCH** any company at `/companies/:id/` (e.g. add an “if user.is_staff, allow” in the Company viewset permissions).
+- **GET** and **PATCH** any job at `/jobs/:id/` (same for the Job viewset).
+
+Until that change is made, admins will see 403 on company/job detail and on verify/feature. The admin account itself is fine; the restriction is in the Company/Job permission logic.
+
+### Employer gets 403 on own dashboard/jobs
+
+When a **logged-in employer** (e.g. `nhcc@worket.com` after seed) opens the employer dashboard or Jobs page, the app calls:
+
+- `GET /employer/dashboard/stats/`
+- `GET /employer/dashboard/top-jobs/`
+- `GET /employer/dashboard/recent-applications/`
+- `GET /employer/jobs/`
+
+If the backend returns **403 Forbidden** for those requests, the employer sees “We couldn’t load your jobs” (or empty dashboard) even though jobs were seeded for their company. The frontend cannot fix this.
+
+**Backend must:** Allow an approved employer who has a company to access those employer endpoints. Typical causes of 403 here:
+
+- Employer permissions not fully granted when the application was approved (e.g. “job posting” or “employer dashboard” scope).
+- Employer–company link or “active employer” flag not set or not checked by the employer views.
+
+Until the backend allows that employer access, the dashboard will keep showing the error state. The Jobs page now shows a clear “We couldn’t load your jobs” message and suggests signing out and back in or contacting support.
+
 ## Seed showcase employers and jobs
 
 `seed-showcase.js` creates the 3 showcase employers, their companies, and jobs on the live API so that **Featured Jobs** and **Featured Employers** show:

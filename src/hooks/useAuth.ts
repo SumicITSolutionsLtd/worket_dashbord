@@ -64,7 +64,7 @@ export function useAuth() {
         }
       } catch (error) {
         toast.error(extractErrorMessage(error));
-        throw error;
+        // Do not re-throw; login page treats this as handled (avoids "Uncaught (in promise)")
       }
     },
     [login, navigate]
