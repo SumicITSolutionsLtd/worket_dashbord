@@ -1,29 +1,43 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../stores/authStore';
+import { isPlatformAdmin } from '../lib/auth';
 import { employerService } from '../services/employer.service';
 import { extractErrorMessage } from '../lib/utils';
 
+/** Only run employer dashboard queries when user is employer and not platform admin. */
+function useEmployerOnlyEnabled(): boolean {
+  const user = useAuthStore((s) => s.user);
+  return !!user?.is_employer && !isPlatformAdmin(user);
+}
+
 export function useDashboardStats() {
+  const enabled = useEmployerOnlyEnabled();
   return useQuery({
     queryKey: ['dashboardStats'],
     queryFn: () => employerService.getDashboardStats(),
     staleTime: 1000 * 60, // 1 minute
+    enabled,
   });
 }
 
 export function useRecentApplications(limit: number = 10) {
+  const enabled = useEmployerOnlyEnabled();
   return useQuery({
     queryKey: ['recentApplications', limit],
     queryFn: () => employerService.getRecentApplications(limit),
     staleTime: 1000 * 30, // 30 seconds
+    enabled,
   });
 }
 
 export function useTopJobs(limit: number = 5) {
+  const enabled = useEmployerOnlyEnabled();
   return useQuery({
     queryKey: ['topJobs', limit],
     queryFn: () => employerService.getTopJobs(limit),
     staleTime: 1000 * 60, // 1 minute
+    enabled,
   });
 }
 

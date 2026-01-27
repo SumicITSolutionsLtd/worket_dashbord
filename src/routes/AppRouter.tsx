@@ -55,6 +55,11 @@ const ProtectedRoute: React.FC<{
     return <Navigate to="/login" replace />;
   }
 
+  // Admin must use admin routes only; employer routes call /employer/* which returns 403 for staff
+  if (!requireAdmin && isPlatformAdmin(user)) {
+    return <Navigate to="/admin" replace />;
+  }
+
   // Check admin requirement (platform admin sees admin panel)
   if (requireAdmin && !isPlatformAdmin(user)) {
     return <Navigate to="/" replace />;

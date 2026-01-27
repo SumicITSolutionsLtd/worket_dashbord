@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Briefcase } from '@phosphor-icons/react';
+import { Plus, Briefcase, Warning } from '@phosphor-icons/react';
 import { Button, Card, SkeletonJobCard } from '../components/ui';
 import EmployerJobCard from '../components/jobs/EmployerJobCard';
 import JobFilters from '../components/jobs/JobFilters';
 import { useEmployerJobs, useToggleJobStatus } from '../hooks/useEmployerJobs';
+import { extractErrorMessage } from '../lib/utils';
 import type { JobFilters as JobFiltersType } from '../types/employer.types';
 
 const JobsPage: React.FC = () => {
@@ -14,7 +15,7 @@ const JobsPage: React.FC = () => {
     search: '',
   });
 
-  const { data, isLoading } = useEmployerJobs(filters);
+  const { data, isLoading, isError, error } = useEmployerJobs(filters);
   const toggleStatus = useToggleJobStatus();
 
   const jobs = data?.results || [];
@@ -46,6 +47,30 @@ const JobsPage: React.FC = () => {
             <SkeletonJobCard key={i} />
           ))}
         </div>
+      ) : isError ? (
+        <Card className="p-12">
+          <div className="text-center">
+            <Warning
+              weight="fill"
+              className="w-16 h-16 mx-auto mb-4 text-amber-500"
+            />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              We couldn&apos;t load your jobs
+            </h3>
+            <p className="text-gray-500 mb-2">
+              {extractErrorMessage(error)}
+            </p>
+            <p className="text-sm text-gray-400 mb-6">
+              If you were recently approved as an employer, try signing out and
+              back in. Otherwise contact support.
+            </p>
+            <Link to="/jobs/create">
+              <Button leftIcon={<Plus weight="bold" className="w-4 h-4" />}>
+                Create Job
+              </Button>
+            </Link>
+          </div>
+        </Card>
       ) : jobs.length > 0 ? (
         <div className="space-y-4">
           {jobs.map((job) => (
