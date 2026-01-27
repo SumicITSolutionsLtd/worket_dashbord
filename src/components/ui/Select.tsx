@@ -1,5 +1,7 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useMemo } from 'react';
 import { CaretDown, WarningCircle } from '@phosphor-icons/react';
+
+let selectIdCounter = 0;
 
 interface SelectOption {
   value: string;
@@ -38,7 +40,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     },
     ref
   ) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const selectId = useMemo(() => id || `select-${++selectIdCounter}`, [id]);
 
     return (
       <div className={`${fullWidth ? 'w-full' : ''}`}>

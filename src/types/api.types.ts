@@ -7,7 +7,8 @@ export interface User {
   is_employer: boolean;
   is_job_seeker: boolean;
   is_verified: boolean;
-  is_staff: boolean;
+  /** Set by backend for staff/super-admin; Worket API login/me may not include it yet */
+  is_staff?: boolean;
   created_at: string;
   avatar?: string | null;
   headline?: string | null;
@@ -265,4 +266,32 @@ export interface JobFormData {
   skill_ids: number[];
   is_active: boolean;
   expires_at: string | null;
+}
+
+// Analytics types
+export interface AnalyticsDashboard {
+  total_jobs: number;
+  total_skills: number;
+  total_users: number;
+  total_companies: number;
+  trending_skills: Array<{
+    id: number;
+    skill: Skill;
+    growth_percentage: string;
+    job_count: number;
+    period_start: string;
+    period_end: string;
+  }>;
+}
+
+export interface MarketInsight {
+  id: number;
+  skill_category: string;
+  demand_score: number;
+  average_salary_min: string;
+  average_salary_max: string;
+  salary_range: string;
+  job_openings: number;
+  period_start: string;
+  period_end: string;
 }

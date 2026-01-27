@@ -42,14 +42,14 @@ const JobApplicationsPage: React.FC = () => {
 
   // Calculate counts for filter tabs
   const counts = useMemo(() => {
-    if (!data?.results) return {};
+    if (!data || !data.results) return {};
     const all = data.results.length;
     const byStatus = data.results.reduce((acc, app) => {
       acc[app.status] = (acc[app.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     return { all, ...byStatus };
-  }, [data?.results]);
+  }, [data]);
 
   const handleSelect = (appId: number) => {
     setSelectedIds((prev) =>

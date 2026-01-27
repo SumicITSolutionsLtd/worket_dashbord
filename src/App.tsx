@@ -5,6 +5,7 @@ import AppRouter from './routes/AppRouter';
 import { useAuthStore } from './stores/authStore';
 import { authService } from './services/auth.service';
 import { extractErrorMessage } from './lib/utils';
+import { isPlatformAdmin } from './lib/auth';
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -35,8 +36,8 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       try {
         const user = await authService.getMe();
-        // Only allow employers and admins
-        if (user.is_employer || user.is_staff) {
+        // Only allow employers and platform admins
+        if (user.is_employer || isPlatformAdmin(user)) {
           setUser(user);
         } else {
           logout();

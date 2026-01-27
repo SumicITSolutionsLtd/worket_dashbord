@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Brain } from '@phosphor-icons/react';
 import { Button, Card, Skeleton } from '../components/ui';
@@ -30,14 +30,35 @@ const AIShortlistPage: React.FC = () => {
   const applyShortlist = useApplyAIShortlist();
 
   // Pre-select top candidates when results load
-  useEffect(() => {
-    if (results?.candidates) {
-      const topIds = results.candidates
+  const topCandidateIds = useMemo(() => {
+    if (results && results.candidates) {
+      return results.candidates
         .filter((c) => c.overall_score >= 70)
         .map((c) => c.application_id);
-      setSelectedCandidates(topIds);
     }
-  }, [results?.candidates]);
+    return [];
+  }, [results]);
+
+  // Use ref to track if we've initialized selection
+  const hasInitialized = useRef(false);
+  const prevTopCandidateIds = useRef<number[]>([]);
+
+  useEffect(() => {
+    // Only initialize if we have new candidates and haven't initialized yet
+    if (
+      topCandidateIds.length > 0 &&
+      selectedCandidates.length === 0 &&
+      !hasInitialized.current &&
+      JSON.stringify(topCandidateIds) !== JSON.stringify(prevTopCandidateIds.current)
+    ) {
+      hasInitialized.current = true;
+      prevTopCandidateIds.current = topCandidateIds;
+      // Schedule state update for next tick to avoid synchronous setState
+      queueMicrotask(() => {
+        setSelectedCandidates(topCandidateIds);
+      });
+    }
+  }, [topCandidateIds, selectedCandidates.length]);
 
   const handleStartAnalysis = (criteria: AIShortlistCriteria) => {
     startAnalysis.mutate({ jobId, criteria });

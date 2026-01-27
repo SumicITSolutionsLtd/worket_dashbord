@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Buildings,
   Camera,
@@ -154,10 +154,9 @@ const CompanyProfilePage: React.FC = () => {
   // Check if current user can manage team (owner or admin)
   const canManageTeam = members?.some(m => m.role === 'owner' || m.role === 'admin');
 
-  // Initialize form data when company loads
-  useEffect(() => {
+  const initialFormData = useMemo(() => {
     if (company) {
-      setFormData({
+      return {
         name: company.name || '',
         description: company.description || '',
         website: company.website || '',
@@ -169,11 +168,26 @@ const CompanyProfilePage: React.FC = () => {
         phone: company.phone || '',
         linkedin_url: company.linkedin_url || '',
         twitter_url: company.twitter_url || '',
-      });
-      setLogoPreview(company.logo);
-      setCoverPreview(company.cover_image);
+      };
     }
+    return null;
   }, [company]);
+
+  // Use ref to track if we've initialized form
+  const lastCompanyId = useRef<number | null>(null);
+
+  // Initialize form data when company loads
+  useEffect(() => {
+    if (initialFormData && company && company.id !== lastCompanyId.current) {
+      lastCompanyId.current = company.id;
+      // Schedule state updates for next tick to avoid synchronous setState
+      queueMicrotask(() => {
+        setFormData(initialFormData);
+        setLogoPreview(company.logo);
+        setCoverPreview(company.cover_image);
+      });
+    }
+  }, [initialFormData, company]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>

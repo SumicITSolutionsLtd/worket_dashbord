@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CircleNotch } from '@phosphor-icons/react';
 import { useAuthStore } from '../stores/authStore';
+import { isPlatformAdmin } from '../lib/auth';
 
 // Layouts
 import EmployerLayout from '../components/layout/EmployerLayout';
@@ -18,6 +19,14 @@ import EmployerOnboardingPage from '../pages/EmployerOnboardingPage';
 import CompanyProfilePage from '../pages/CompanyProfilePage';
 import EmployerApplicationsPage from '../pages/admin/EmployerApplicationsPage';
 import ReviewApplicationPage from '../pages/admin/ReviewApplicationPage';
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import ProfilesManagementPage from '../pages/admin/ProfilesManagementPage';
+import JobsManagementPage from '../pages/admin/JobsManagementPage';
+import CompaniesManagementPage from '../pages/admin/CompaniesManagementPage';
+import SkillsManagementPage from '../pages/admin/SkillsManagementPage';
+import AdminJobDetailPage from '../pages/admin/AdminJobDetailPage';
+import AdminCompanyDetailPage from '../pages/admin/AdminCompanyDetailPage';
+import AdminProfileDetailPage from '../pages/admin/AdminProfileDetailPage';
 
 // Loading component
 const LoadingScreen = () => (
@@ -41,13 +50,13 @@ const ProtectedRoute: React.FC<{
     return <Navigate to="/login" replace />;
   }
 
-  // Check if user is employer or admin
-  if (!user?.is_employer && !user?.is_staff) {
+  // Check if user is employer or platform admin
+  if (!user?.is_employer && !isPlatformAdmin(user)) {
     return <Navigate to="/login" replace />;
   }
 
-  // Check admin requirement
-  if (requireAdmin && !user?.is_staff) {
+  // Check admin requirement (platform admin sees admin panel)
+  if (requireAdmin && !isPlatformAdmin(user)) {
     return <Navigate to="/" replace />;
   }
 
@@ -63,9 +72,9 @@ const PublicOnlyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }
 
   if (isAuthenticated) {
-    // Redirect based on user type
-    if (user?.is_staff) {
-      return <Navigate to="/admin/applications" replace />;
+    // Redirect based on user type (platform admin -> admin panel)
+    if (isPlatformAdmin(user)) {
+      return <Navigate to="/admin" replace />;
     }
     return <Navigate to="/" replace />;
   }
@@ -115,8 +124,16 @@ const AppRouter: React.FC = () => {
             </ProtectedRoute>
           }
         >
+          <Route path="admin" element={<AdminDashboardPage />} />
           <Route path="admin/applications" element={<EmployerApplicationsPage />} />
           <Route path="admin/applications/:id" element={<ReviewApplicationPage />} />
+          <Route path="admin/profiles" element={<ProfilesManagementPage />} />
+          <Route path="admin/profiles/:id" element={<AdminProfileDetailPage />} />
+          <Route path="admin/jobs" element={<JobsManagementPage />} />
+          <Route path="admin/jobs/:id" element={<AdminJobDetailPage />} />
+          <Route path="admin/companies" element={<CompaniesManagementPage />} />
+          <Route path="admin/companies/:id" element={<AdminCompanyDetailPage />} />
+          <Route path="admin/skills" element={<SkillsManagementPage />} />
         </Route>
 
         {/* Catch all - redirect to dashboard or login */}

@@ -6,6 +6,9 @@ import {
   Buildings,
   SignOut,
   List,
+  ChartLineUp,
+  Users,
+  Tag,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -67,13 +70,53 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto" onClick={onClose}>
         {isAdmin ? (
-          // Admin Navigation
+          // Admin Navigation – grouped by category
           <>
+            <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Overview
+            </p>
+            <NavItem
+              to="/admin"
+              icon={<ChartLineUp weight="bold" className="w-5 h-5" />}
+              label="Dashboard"
+              end
+            />
+            <p className="px-4 py-2 pt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Onboarding
+            </p>
             <NavItem
               to="/admin/applications"
               icon={<List weight="bold" className="w-5 h-5" />}
-              label="Applications"
-              end
+              label="Employer Applications"
+            />
+            <p className="px-4 py-2 pt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Content
+            </p>
+            <NavItem
+              to="/admin/jobs"
+              icon={<Briefcase weight="bold" className="w-5 h-5" />}
+              label="Jobs"
+            />
+            <NavItem
+              to="/admin/companies"
+              icon={<Buildings weight="bold" className="w-5 h-5" />}
+              label="Companies"
+            />
+            <p className="px-4 py-2 pt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Users
+            </p>
+            <NavItem
+              to="/admin/profiles"
+              icon={<Users weight="bold" className="w-5 h-5" />}
+              label="User Profiles"
+            />
+            <p className="px-4 py-2 pt-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Platform
+            </p>
+            <NavItem
+              to="/admin/skills"
+              icon={<Tag weight="bold" className="w-5 h-5" />}
+              label="Skills"
             />
           </>
         ) : (

@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
 import { authService } from '../services/auth.service';
 import { extractErrorMessage } from '../lib/utils';
+import { isPlatformAdmin } from '../lib/auth';
 import type { LoginRequest } from '../types/api.types';
 
 export function useAuth() {
@@ -22,8 +23,8 @@ export function useAuth() {
       try {
         const userData = await authService.getMe();
 
-        // Check if user is an employer
-        if (!userData.is_employer && !userData.is_staff) {
+        // Check if user is an employer or platform admin
+        if (!userData.is_employer && !isPlatformAdmin(userData)) {
           toast.error('This dashboard is for employers only');
           logout();
           navigate('/login');
@@ -46,8 +47,8 @@ export function useAuth() {
       try {
         const response = await authService.login(data);
 
-        // Check if user is an employer
-        if (!response.user.is_employer && !response.user.is_staff) {
+        // Check if user is an employer or platform admin
+        if (!response.user.is_employer && !isPlatformAdmin(response.user)) {
           toast.error('This dashboard is for employers only');
           return;
         }
@@ -55,9 +56,9 @@ export function useAuth() {
         login(response.user, response.tokens);
         toast.success('Welcome back!');
 
-        // Redirect based on user type
-        if (response.user.is_staff) {
-          navigate('/admin/applications');
+        // Redirect based on user type (platform admin -> admin panel)
+        if (isPlatformAdmin(response.user)) {
+          navigate('/admin');
         } else {
           navigate('/');
         }
@@ -90,7 +91,7 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     isEmployer: user?.is_employer ?? false,
-    isAdmin: user?.is_staff ?? false,
+    isAdmin: isPlatformAdmin(user),
     login: handleLogin,
     logout: handleLogout,
   };

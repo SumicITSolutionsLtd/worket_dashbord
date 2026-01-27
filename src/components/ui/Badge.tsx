@@ -1,6 +1,6 @@
 import React from 'react';
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'outline' | 'glass';
+type BadgeVariant = 'default' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'outline' | 'glass';
 type BadgeSize = 'sm' | 'md' | 'lg';
 
 interface BadgeProps {
@@ -14,6 +14,7 @@ interface BadgeProps {
 
 const variantClasses: Record<BadgeVariant, string> = {
   default: 'bg-gray-100/80 text-gray-700 backdrop-blur-sm',
+  secondary: 'bg-gray-100/80 text-gray-600 backdrop-blur-sm',
   success: 'bg-green-100/80 text-green-700 backdrop-blur-sm',
   warning: 'bg-amber-100/80 text-amber-700 backdrop-blur-sm',
   danger: 'bg-red-100/80 text-red-700 backdrop-blur-sm',
@@ -30,6 +31,7 @@ const sizeClasses: Record<BadgeSize, string> = {
 
 const dotColors: Record<BadgeVariant, string> = {
   default: 'bg-gray-500',
+  secondary: 'bg-gray-500',
   success: 'bg-green-500',
   warning: 'bg-amber-500',
   danger: 'bg-red-500',

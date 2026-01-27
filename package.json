@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed-showcase": "node scripts/seed-showcase.js"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

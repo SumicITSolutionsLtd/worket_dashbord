@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Brain, Info } from '@phosphor-icons/react';
 import { Button, Card, Textarea } from '../ui';
 import type { AIShortlistCriteria } from '../../types/api.types';
@@ -17,6 +17,41 @@ const defaultCriteria: AIShortlistCriteria = {
   custom_criteria: '',
 };
 
+interface WeightSliderProps {
+  label: string;
+  field: keyof AIShortlistCriteria;
+  description: string;
+  criteria: AIShortlistCriteria;
+  onWeightChange: (field: keyof AIShortlistCriteria, value: number) => void;
+}
+
+const WeightSlider: React.FC<WeightSliderProps> = ({
+  label,
+  field,
+  description,
+  criteria,
+  onWeightChange,
+}) => (
+  <div className="space-y-2">
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <span className="text-sm font-bold text-gray-900">
+        {criteria[field] as number}%
+      </span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="100"
+      step="5"
+      value={criteria[field] as number}
+      onChange={(e) => onWeightChange(field, parseInt(e.target.value))}
+      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
+    />
+    <p className="text-xs text-gray-500">{description}</p>
+  </div>
+);
+
 const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
   onSubmit,
   isSubmitting,
@@ -25,7 +60,6 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
   const [criteria, setCriteria] = useState<AIShortlistCriteria>(
     initialCriteria || defaultCriteria
   );
-  const [error, setError] = useState<string | null>(null);
 
   const total =
     criteria.skills_match_weight +
@@ -33,12 +67,11 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
     criteria.education_weight +
     criteria.location_weight;
 
-  useEffect(() => {
+  const error = useMemo(() => {
     if (total !== 100) {
-      setError(`Weights must sum to 100 (currently ${total})`);
-    } else {
-      setError(null);
+      return `Weights must sum to 100 (currently ${total})`;
     }
+    return null;
   }, [total]);
 
   const handleWeightChange = (field: keyof AIShortlistCriteria, value: number) => {
@@ -54,35 +87,6 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
       onSubmit(criteria);
     }
   };
-
-  const WeightSlider = ({
-    label,
-    field,
-    description,
-  }: {
-    label: string;
-    field: keyof AIShortlistCriteria;
-    description: string;
-  }) => (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
-        <span className="text-sm font-bold text-gray-900">
-          {criteria[field] as number}%
-        </span>
-      </div>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="5"
-        value={criteria[field] as number}
-        onChange={(e) => handleWeightChange(field, parseInt(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
-      />
-      <p className="text-xs text-gray-500">{description}</p>
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit}>
@@ -105,21 +109,29 @@ const CriteriaWeightsForm: React.FC<CriteriaWeightsFormProps> = ({
             label="Skills Match"
             field="skills_match_weight"
             description="How well the candidate's skills match the job requirements"
+            criteria={criteria}
+            onWeightChange={handleWeightChange}
           />
           <WeightSlider
             label="Experience"
             field="experience_weight"
             description="Relevant work experience and career progression"
+            criteria={criteria}
+            onWeightChange={handleWeightChange}
           />
           <WeightSlider
             label="Education"
             field="education_weight"
             description="Educational background and qualifications"
+            criteria={criteria}
+            onWeightChange={handleWeightChange}
           />
           <WeightSlider
             label="Location"
             field="location_weight"
             description="Proximity to job location or remote work suitability"
+            criteria={criteria}
+            onWeightChange={handleWeightChange}
           />
         </div>
 

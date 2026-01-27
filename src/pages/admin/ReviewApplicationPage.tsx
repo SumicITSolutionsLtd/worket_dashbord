@@ -19,6 +19,20 @@ import {
 } from '../../hooks/useAdmin';
 import { formatDate, getStatusColor } from '../../lib/utils';
 
+const InfoRow: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  value: string | React.ReactNode;
+}> = ({ icon, label, value }) => (
+  <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
+    <div className="text-gray-400 mt-0.5">{icon}</div>
+    <div className="flex-1">
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className="font-medium text-gray-900">{value}</p>
+    </div>
+  </div>
+);
+
 const ReviewApplicationPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -86,24 +100,6 @@ const ReviewApplicationPage: React.FC = () => {
       </Card>
     );
   }
-
-  const InfoRow = ({
-    icon,
-    label,
-    value,
-  }: {
-    icon: React.ReactNode;
-    label: string;
-    value: string | React.ReactNode;
-  }) => (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-100 last:border-0">
-      <div className="text-gray-400 mt-0.5">{icon}</div>
-      <div className="flex-1">
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="font-medium text-gray-900">{value}</p>
-      </div>
-    </div>
-  );
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from 'react';
+import React, { forwardRef, useState, useMemo } from 'react';
 import { Eye, EyeSlash, WarningCircle } from '@phosphor-icons/react';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -16,6 +16,8 @@ const sizeClasses = {
   md: 'px-4 py-2.5 text-sm min-h-[44px]',
   lg: 'px-4 py-3 text-base min-h-[52px]',
 };
+
+let inputIdCounter = 0;
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -36,7 +38,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = type === 'password';
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = useMemo(() => id || `input-${++inputIdCounter}`, [id]);
 
     const inputType = isPasswordType ? (showPassword ? 'text' : 'password') : type;
 
