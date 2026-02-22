@@ -116,6 +116,15 @@ export interface Profile {
   updated_at?: string;
 }
 
+export interface ApplicationDocument {
+  id: number;
+  document: string;
+  document_type: 'cv' | 'cover_letter' | 'supporting';
+  original_filename: string;
+  file_size: number;
+  uploaded_at: string;
+}
+
 export interface JobApplication {
   id: number;
   job: Job;
@@ -123,6 +132,7 @@ export interface JobApplication {
   applicant_profile?: Profile;
   cover_letter: string;
   resume: string | null;
+  documents?: ApplicationDocument[];
   status: 'pending' | 'reviewed' | 'shortlisted' | 'interview' | 'accepted' | 'rejected';
   ai_score?: number | { overall_score: number; rank: number; recommendation: string } | null;
   ai_strengths?: string[];

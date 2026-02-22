@@ -99,7 +99,22 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               disabled={isUpdating}
             />
 
-            {application.resume && (
+            {/* Document links */}
+            {application.documents && application.documents.length > 0 ? (
+              application.documents.map((doc) => (
+                <a
+                  key={doc.id}
+                  href={doc.document}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+                  title={doc.original_filename}
+                >
+                  <FileText weight="bold" className="w-4 h-4" />
+                  {doc.document_type === 'cv' ? 'CV' : doc.document_type === 'cover_letter' ? 'Cover Letter' : doc.original_filename}
+                </a>
+              ))
+            ) : application.resume ? (
               <a
                 href={application.resume}
                 target="_blank"
@@ -109,7 +124,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                 <FileText weight="bold" className="w-4 h-4" />
                 Resume
               </a>
-            )}
+            ) : null}
 
             {onViewNotes && (
               <button
@@ -178,6 +193,36 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               <p className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg">
                 {application.cover_letter}
               </p>
+            </div>
+          )}
+
+          {/* Attached Documents */}
+          {application.documents && application.documents.length > 0 && (
+            <div>
+              <h5 className="text-sm font-semibold text-gray-700 mb-2">Attached Documents</h5>
+              <div className="space-y-2">
+                {application.documents.map((doc) => (
+                  <a
+                    key={doc.id}
+                    href={doc.document}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    <FileText weight="bold" className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{doc.original_filename}</p>
+                      <p className="text-xs text-gray-500">
+                        {doc.document_type === 'cv' ? 'CV/Resume' : doc.document_type === 'cover_letter' ? 'Cover Letter' : 'Supporting Document'}
+                        {' \u00b7 '}
+                        {doc.file_size < 1024 * 1024
+                          ? `${(doc.file_size / 1024).toFixed(0)}KB`
+                          : `${(doc.file_size / (1024 * 1024)).toFixed(1)}MB`}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 
