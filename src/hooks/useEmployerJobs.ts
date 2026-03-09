@@ -84,6 +84,7 @@ export function useToggleJobStatus() {
     onSuccess: (_, { id, isActive }) => {
       queryClient.invalidateQueries({ queryKey: ['employerJobs'] });
       queryClient.invalidateQueries({ queryKey: ['job', id] });
+      queryClient.invalidateQueries({ queryKey: ['topJobs'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       toast.success(isActive ? 'Job activated' : 'Job deactivated');
     },

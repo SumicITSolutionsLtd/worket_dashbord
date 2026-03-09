@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Trash, Lightning, Star } from '@phosphor-icons/react';
 import { Button, Card, Badge, Modal, Skeleton } from '../../components/ui';
 import { useAdminJob, useUpdateJob, useDeleteJob } from '../../hooks/useAdmin';
-import { formatDate } from '../../lib/utils';
+import { formatDate, getDisplayCompanyDescription } from '../../lib/utils';
 
 const AdminJobDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -112,6 +112,20 @@ const AdminJobDetailPage: React.FC = () => {
           <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">Applicants</h2>
           <p className="text-gray-700">{job.applicants_count ?? 0}</p>
         </div>
+        {job.company && (
+          <div>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+              About {job.company.name}
+            </h2>
+            {getDisplayCompanyDescription(job.company.description) ? (
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {getDisplayCompanyDescription(job.company.description)}
+              </p>
+            ) : (
+              <p className="text-gray-500 text-sm">No description has been added yet.</p>
+            )}
+          </div>
+        )}
       </Card>
 
       <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Job" size="sm">

@@ -11,6 +11,8 @@ import {
   Tag,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../hooks/useAuth';
+import { useMyCompanies } from '../../hooks/useCompany';
+import { getFullAssetUrl } from '../../lib/utils';
 
 interface NavItemProps {
   to: string;
@@ -42,6 +44,8 @@ interface EmployerSidebarProps {
 
 const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
   const { user, logout, isAdmin } = useAuth();
+  const { data: myCompanies } = useMyCompanies();
+  const company = !isAdmin && myCompanies?.length ? myCompanies[0] : null;
 
   const handleLogout = () => {
     if (onClose) onClose();
@@ -142,15 +146,27 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
         )}
       </nav>
 
-      {/* User section */}
+      {/* User / Company section - employer: company logo + name; admin: user avatar + name */}
       <div className="p-4 border-t border-gray-100/50">
         <div className="flex items-center gap-3 mb-4 px-2">
-          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-            {user?.avatar ? (
+          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+            {company ? (
+              getFullAssetUrl(company.logo) ? (
+                <img
+                  src={getFullAssetUrl(company.logo)!}
+                  alt={company.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-600 font-medium text-sm">
+                  {company.name?.slice(0, 2).toUpperCase() || 'Co'}
+                </span>
+              )
+            ) : getFullAssetUrl(user?.avatar) ? (
               <img
-                src={user.avatar}
-                alt={user.full_name}
-                className="w-full h-full rounded-full object-cover"
+                src={getFullAssetUrl(user?.avatar)!}
+                alt={user?.full_name ?? ''}
+                className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-gray-600 font-medium">
@@ -160,8 +176,12 @@ const EmployerSidebar: React.FC<EmployerSidebarProps> = ({ onClose }) => {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900 truncate">{user?.full_name}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            <p className="font-medium text-gray-900 truncate">
+              {company ? company.name : user?.full_name}
+            </p>
+            <p className="text-xs text-gray-500 truncate">
+              {company ? user?.email : user?.email}
+            </p>
           </div>
         </div>
 

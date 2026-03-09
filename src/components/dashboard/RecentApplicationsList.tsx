@@ -11,7 +11,7 @@ interface RecentApplicationsListProps {
 }
 
 const SkeletonItem = () => (
-  <div className="flex items-center gap-3 p-4 border-b border-gray-100 last:border-0">
+  <div className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
     <SkeletonAvatar size="md" />
     <div className="flex-1 space-y-2">
       <Skeleton className="h-4 w-32" />
@@ -27,11 +27,11 @@ const RecentApplicationsList: React.FC<RecentApplicationsListProps> = ({
 }) => {
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-900">Recent Applications</h3>
+      <div className="flex items-center justify-between p-3 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-900 text-sm">Recent Applications</h3>
         <Link
           to="/jobs"
-          className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+          className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
         >
           View all
           <ArrowRight weight="bold" className="w-4 h-4" />
@@ -46,7 +46,7 @@ const RecentApplicationsList: React.FC<RecentApplicationsListProps> = ({
             <Link
               key={app.id}
               to={`/jobs/${app.job_id}/applications`}
-              className="flex items-center gap-3 p-4 hover:bg-gray-50/80 transition-colors"
+              className="flex items-center gap-3 p-3 hover:bg-gray-50/80 transition-colors"
             >
               {/* Avatar */}
               <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">

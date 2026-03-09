@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Briefcase, Users } from '@phosphor-icons/react';
+import { ArrowRight, Briefcase, Users, ToggleLeft, ToggleRight } from '@phosphor-icons/react';
 import { Card, Badge, Skeleton } from '../ui';
 import { formatRelativeTime } from '../../lib/utils';
 import type { TopJob } from '../../types/api.types';
@@ -8,10 +8,12 @@ import type { TopJob } from '../../types/api.types';
 interface TopJobsWidgetProps {
   jobs?: TopJob[];
   isLoading?: boolean;
+  onToggleStatus?: (id: number, isActive: boolean) => void;
+  togglingJobId?: number | null;
 }
 
 const SkeletonItem = () => (
-  <div className="flex items-center gap-3 p-4 border-b border-gray-100 last:border-0">
+  <div className="flex items-center gap-3 p-3 border-b border-gray-100 last:border-0">
     <Skeleton className="w-10 h-10 rounded-xl" />
     <div className="flex-1 space-y-2">
       <Skeleton className="h-4 w-40" />
@@ -21,14 +23,19 @@ const SkeletonItem = () => (
   </div>
 );
 
-const TopJobsWidget: React.FC<TopJobsWidgetProps> = ({ jobs, isLoading }) => {
+const TopJobsWidget: React.FC<TopJobsWidgetProps> = ({
+  jobs,
+  isLoading,
+  onToggleStatus,
+  togglingJobId,
+}) => {
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-900">Top Performing Jobs</h3>
+      <div className="flex items-center justify-between p-3 border-b border-gray-100">
+        <h3 className="font-semibold text-gray-900 text-sm">Top Performing Jobs</h3>
         <Link
           to="/jobs"
-          className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+          className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
         >
           All jobs
           <ArrowRight weight="bold" className="w-4 h-4" />
@@ -43,7 +50,7 @@ const TopJobsWidget: React.FC<TopJobsWidgetProps> = ({ jobs, isLoading }) => {
             <Link
               key={job.id}
               to={`/jobs/${job.id}/applications`}
-              className="flex items-center gap-3 p-4 hover:bg-gray-50/80 transition-colors"
+              className="flex items-center gap-3 p-3 hover:bg-gray-50/80 transition-colors"
             >
               {/* Rank */}
               <div className="w-10 h-10 bg-primary-100/80 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -64,6 +71,33 @@ const TopJobsWidget: React.FC<TopJobsWidgetProps> = ({ jobs, isLoading }) => {
                   Posted {formatRelativeTime(job.posted_at)}
                 </p>
               </div>
+
+              {/* Toggle active/inactive */}
+              {onToggleStatus && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onToggleStatus(job.id, !job.is_active);
+                  }}
+                  disabled={togglingJobId === job.id}
+                  className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 flex-shrink-0"
+                  title={job.is_active ? 'Active (click to deactivate)' : 'Inactive (click to activate)'}
+                >
+                  {job.is_active ? (
+                    <>
+                      <ToggleRight weight="fill" className="w-5 h-5 text-green-500" />
+                      <span>Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft weight="bold" className="w-5 h-5" />
+                      <span>Inactive</span>
+                    </>
+                  )}
+                </button>
+              )}
 
               {/* Applicants count */}
               <div className="flex items-center gap-1 text-gray-600 bg-gray-100/80 px-3 py-1.5 rounded-lg">

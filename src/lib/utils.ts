@@ -1,5 +1,36 @@
 import { clsx, type ClassValue } from 'clsx';
 
+/** API origin for resolving relative asset URLs (e.g. company logo, user avatar) */
+const API_ORIGIN =
+  (import.meta.env.VITE_API_BASE_URL || 'https://api.worketconnect.com/api/v1').replace(
+    /\/api\/v1\/?$/,
+    ''
+  ) || 'https://api.worketconnect.com';
+
+/**
+ * Returns a full URL for an asset (logo, avatar, etc.) from the API.
+ * If the path is already absolute (http/https), returns as-is.
+ * Otherwise prepends the API origin so images load when the app runs on a different origin.
+ */
+export function getFullAssetUrl(path: string | null | undefined): string | null {
+  if (!path || typeof path !== 'string') return null;
+  const trimmed = path.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return `${API_ORIGIN}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+}
+
+/** Returns company description for display, or null if empty or the API placeholder "No description available". */
+export function getDisplayCompanyDescription(
+  description: string | null | undefined
+): string | null {
+  if (description == null || typeof description !== 'string') return null;
+  const trimmed = description.trim();
+  if (!trimmed) return null;
+  if (/^no\s+description\s+available\.?$/i.test(trimmed)) return null;
+  return trimmed;
+}
+
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
 }

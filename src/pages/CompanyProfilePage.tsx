@@ -24,6 +24,7 @@ import {
 import { Button, Input, Textarea, Select, Card, Badge, Modal } from '../components/ui';
 import {
   useMyCompanies,
+  useCompany,
   useCreateCompany,
   useUpdateCompany,
   useCompanyMembers,
@@ -32,7 +33,8 @@ import {
   useRemoveMember,
 } from '../hooks/useCompany';
 import type { CompanyMember, CompanyMemberRole } from '../types/api.types';
-import { getInitials } from '../lib/utils';
+import { getInitials, getFullAssetUrl, getDisplayCompanyDescription } from '../lib/utils';
+import { useAuth } from '../hooks/useAuth';
 
 const INDUSTRIES = [
   { value: 'technology', label: 'Technology' },
@@ -139,6 +141,11 @@ const CompanyProfilePage: React.FC = () => {
   const coverInputRef = useRef<HTMLInputElement>(null);
 
   const company = companies?.[0];
+  const { data: companyDetail } = useCompany(company?.id ?? 0);
+  const { user } = useAuth();
+
+  // Use full company detail for form when available (ensures description and all fields from API)
+  const companyForForm = companyDetail ?? company;
 
   // Team member hooks
   const { data: members, isLoading: membersLoading } = useCompanyMembers(company?.id || 0);
@@ -151,43 +158,58 @@ const CompanyProfilePage: React.FC = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<CompanyMemberRole>('recruiter');
 
-  // Check if current user can manage team (owner or admin)
-  const canManageTeam = members?.some(m => m.role === 'owner' || m.role === 'admin');
+  // Can manage team if: listed as owner/admin in members, or company owner by API, or no members yet (creator)
+  const canManageTeam =
+    members?.some(m => m.role === 'owner' || m.role === 'admin') ||
+    (company?.owner && user && company.owner.id === user.id) ||
+    (company && (!members || members.length === 0));
 
   const initialFormData = useMemo(() => {
-    if (company) {
+    if (companyForForm) {
       return {
-        name: company.name || '',
-        description: company.description || '',
-        website: company.website || '',
-        location: company.location || '',
-        industry: company.industry || '',
-        employee_count: company.employee_count || '',
-        founded_year: company.founded_year?.toString() || '',
-        email: company.email || '',
-        phone: company.phone || '',
-        linkedin_url: company.linkedin_url || '',
-        twitter_url: company.twitter_url || '',
+        name: companyForForm.name || '',
+        description: companyForForm.description || '',
+        website: companyForForm.website || '',
+        location: companyForForm.location || '',
+        industry: companyForForm.industry || '',
+        employee_count: companyForForm.employee_count || '',
+        founded_year: companyForForm.founded_year?.toString() || '',
+        email: companyForForm.email || '',
+        phone: companyForForm.phone || '',
+        linkedin_url: companyForForm.linkedin_url || '',
+        twitter_url: companyForForm.twitter_url || '',
       };
     }
     return null;
-  }, [company]);
+  }, [companyForForm]);
 
-  // Use ref to track if we've initialized form
+  // Use ref to track if we've initialized form when company first loads
   const lastCompanyId = useRef<number | null>(null);
+  const wasEditingRef = useRef(false);
 
-  // Initialize form data when company loads
+  // Initialize form data when company (or full detail) loads
   useEffect(() => {
-    if (initialFormData && company && company.id !== lastCompanyId.current) {
-      lastCompanyId.current = company.id;
-      // Schedule state updates for next tick to avoid synchronous setState
-      queueMicrotask(() => {
-        setFormData(initialFormData);
-        setLogoPreview(company.logo);
-        setCoverPreview(company.cover_image);
-      });
+    if (initialFormData && companyForForm && companyForForm.id !== lastCompanyId.current) {
+      lastCompanyId.current = companyForForm.id;
+      setFormData(initialFormData);
+      setLogoPreview(getFullAssetUrl(companyForForm.logo) || companyForForm.logo);
+      setCoverPreview(getFullAssetUrl(companyForForm.cover_image) || companyForForm.cover_image);
     }
-  }, [initialFormData, company]);
+  }, [initialFormData, companyForForm]);
+
+  // When user opens edit form, always sync fields from current company so existing details appear
+  useEffect(() => {
+    if (isEditing && companyForForm && initialFormData) {
+      if (!wasEditingRef.current) {
+        wasEditingRef.current = true;
+        setFormData(initialFormData);
+        setLogoPreview(getFullAssetUrl(companyForForm.logo) || companyForForm.logo);
+        setCoverPreview(getFullAssetUrl(companyForForm.cover_image) || companyForForm.cover_image);
+      }
+    } else {
+      wasEditingRef.current = false;
+    }
+  }, [isEditing, companyForForm, initialFormData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -271,22 +293,22 @@ const CompanyProfilePage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    if (company) {
+    if (companyForForm) {
       setFormData({
-        name: company.name || '',
-        description: company.description || '',
-        website: company.website || '',
-        location: company.location || '',
-        industry: company.industry || '',
-        employee_count: company.employee_count || '',
-        founded_year: company.founded_year?.toString() || '',
-        email: company.email || '',
-        phone: company.phone || '',
-        linkedin_url: company.linkedin_url || '',
-        twitter_url: company.twitter_url || '',
+        name: companyForForm.name || '',
+        description: companyForForm.description || '',
+        website: companyForForm.website || '',
+        location: companyForForm.location || '',
+        industry: companyForForm.industry || '',
+        employee_count: companyForForm.employee_count || '',
+        founded_year: companyForForm.founded_year?.toString() || '',
+        email: companyForForm.email || '',
+        phone: companyForForm.phone || '',
+        linkedin_url: companyForForm.linkedin_url || '',
+        twitter_url: companyForForm.twitter_url || '',
       });
-      setLogoPreview(company.logo);
-      setCoverPreview(company.cover_image);
+      setLogoPreview(getFullAssetUrl(companyForForm.logo) || companyForForm.logo);
+      setCoverPreview(getFullAssetUrl(companyForForm.cover_image) || companyForForm.cover_image);
     }
     setLogo(null);
     setCoverImage(null);
@@ -392,29 +414,31 @@ const CompanyProfilePage: React.FC = () => {
         </div>
 
         <Card className="overflow-hidden">
-          {/* Cover Image Upload */}
+          {/* Cover banner upload - use label so file input opens reliably */}
           <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200">
             {coverPreview && (
               <img
-                src={coverPreview}
+                src={coverPreview.startsWith('blob:') ? coverPreview : (getFullAssetUrl(coverPreview) || coverPreview)}
                 alt="Cover"
                 className="w-full h-full object-cover"
               />
             )}
             <input
               ref={coverInputRef}
+              id="company-cover-input"
               type="file"
               onChange={handleCoverChange}
               accept="image/*"
-              className="hidden"
+              className="sr-only"
+              aria-label="Upload cover banner"
             />
-            <button
-              onClick={() => coverInputRef.current?.click()}
-              className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow-sm"
+            <label
+              htmlFor="company-cover-input"
+              className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow-sm cursor-pointer"
             >
               <Image weight="bold" className="w-4 h-4" />
               {coverPreview ? 'Change Cover' : 'Add Cover'}
-            </button>
+            </label>
           </div>
 
           {/* Logo Upload */}
@@ -423,7 +447,7 @@ const CompanyProfilePage: React.FC = () => {
               <div className="w-24 h-24 rounded-xl bg-white border-4 border-white shadow-lg overflow-hidden">
                 {logoPreview ? (
                   <img
-                    src={logoPreview}
+                    src={logoPreview.startsWith('blob:') ? logoPreview : (getFullAssetUrl(logoPreview) || logoPreview)}
                     alt="Logo"
                     className="w-full h-full object-cover"
                   />
@@ -435,17 +459,19 @@ const CompanyProfilePage: React.FC = () => {
               </div>
               <input
                 ref={logoInputRef}
+                id="company-logo-input"
                 type="file"
                 onChange={handleLogoChange}
                 accept="image/*"
-                className="hidden"
+                className="sr-only"
+                aria-label="Upload company logo"
               />
-              <button
-                onClick={() => logoInputRef.current?.click()}
-                className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors shadow-md"
+              <label
+                htmlFor="company-logo-input"
+                className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors shadow-md cursor-pointer"
               >
                 <Camera weight="bold" className="w-4 h-4" />
-              </button>
+              </label>
             </div>
           </div>
 
@@ -630,50 +656,72 @@ const CompanyProfilePage: React.FC = () => {
       {/* Profile Tab Content */}
       {activeTab === 'profile' && (
         <Card className="overflow-hidden">
-          {/* Cover Image */}
+          {/* Cover banner */}
           <div className="relative h-48 bg-gradient-to-br from-primary-100 to-primary-200">
-            {company.cover_image && (
+            {getFullAssetUrl(company.cover_image) ? (
               <img
-                src={company.cover_image}
+                src={getFullAssetUrl(company.cover_image)!}
                 alt="Cover"
                 className="w-full h-full object-cover"
               />
-            )}
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-medium text-gray-700 hover:bg-white transition-colors shadow-sm"
+            >
+              <Image weight="bold" className="w-4 h-4" />
+              {company.cover_image ? 'Change cover' : 'Add cover banner'}
+            </button>
           </div>
 
-        {/* Logo and Basic Info */}
-        <div className="px-6 -mt-12 relative z-10">
-          <div className="flex items-end gap-4">
-            <div className="w-24 h-24 rounded-xl bg-white border-4 border-white shadow-lg overflow-hidden">
-              {company.logo ? (
-                <img
-                  src={company.logo}
-                  alt={company.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                  <Buildings weight="bold" className="w-10 h-10 text-gray-400" />
+          {/* Logo (company photo) and Basic Info - with edit profile photo */}
+          <div className="px-6 -mt-12 relative z-10">
+            <div className="flex items-end gap-4">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-xl bg-white border-4 border-white shadow-lg overflow-hidden">
+                  {getFullAssetUrl(company.logo) ? (
+                    <img
+                      src={getFullAssetUrl(company.logo)!}
+                      alt={company.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <Buildings weight="bold" className="w-10 h-10 text-gray-400" />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="pb-2">
-              <h2 className="text-xl font-bold text-gray-900">{company.name}</h2>
-              {company.industry && (
-                <p className="text-gray-500 capitalize">{company.industry}</p>
-              )}
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors shadow-md"
+                  title="Edit profile photo"
+                >
+                  <Camera weight="bold" className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="pb-2">
+                <h2 className="text-xl font-bold text-gray-900">{company.name}</h2>
+                {company.industry && (
+                  <p className="text-gray-500 capitalize">{company.industry}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Details */}
         <div className="p-6">
-          {company.description && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-500 mb-2">About</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{company.description}</p>
-            </div>
-          )}
+          <div className="mb-6">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">About {company.name}</h3>
+            {getDisplayCompanyDescription(company.description) ? (
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {getDisplayCompanyDescription(company.description)}
+              </p>
+            ) : (
+              <p className="text-gray-500 text-sm">No description has been added yet. Add one above to tell job seekers about your company.</p>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {company.location && (

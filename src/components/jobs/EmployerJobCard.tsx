@@ -73,6 +73,12 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
             </Badge>
           </div>
 
+          {job.description?.trim() && (
+            <p className="text-sm text-gray-600 line-clamp-2 mt-2 mb-2">
+              {job.description.trim()}
+            </p>
+          )}
+
           {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-1">

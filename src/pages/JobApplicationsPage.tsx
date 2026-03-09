@@ -14,6 +14,7 @@ import {
   useAddApplicationNote,
   useApplicationNotes,
 } from '../hooks/useEmployerApplications';
+import { getDisplayCompanyDescription } from '../lib/utils';
 import type { ApplicationFilters as ApplicationFiltersType } from '../types/employer.types';
 
 const JobApplicationsPage: React.FC = () => {
@@ -164,6 +165,22 @@ const JobApplicationsPage: React.FC = () => {
           onAddNote={handleAddNote}
           isAddingNote={addNote.isPending}
         />
+      )}
+
+      {/* About the company — show company description when viewing this job */}
+      {job?.company && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            About {job.company.name}
+          </h2>
+          {getDisplayCompanyDescription(job.company.description) ? (
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {getDisplayCompanyDescription(job.company.description)}
+            </p>
+          ) : (
+            <p className="text-gray-500 text-sm">No description has been added yet.</p>
+          )}
+        </Card>
       )}
     </div>
   );

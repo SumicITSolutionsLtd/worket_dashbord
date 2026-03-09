@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/react';
 import { Button, Card, Badge, Modal, Skeleton } from '../../components/ui';
 import { useAdminCompany, useUpdateCompany, useDeleteCompany } from '../../hooks/useAdmin';
+import { getDisplayCompanyDescription } from '../../lib/utils';
 
 const AdminCompanyDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -120,7 +121,7 @@ const AdminCompanyDetailPage: React.FC = () => {
         </div>
         <div>
           <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">Description</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{company.description || '—'}</p>
+          <p className="text-gray-700 whitespace-pre-wrap">{getDisplayCompanyDescription(company.description) || '—'}</p>
         </div>
         <div>
           <h2 className="text-sm font-semibold text-gray-500 uppercase mb-2">Contact</h2>

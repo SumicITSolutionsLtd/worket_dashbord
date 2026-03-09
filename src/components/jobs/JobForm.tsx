@@ -147,7 +147,7 @@ const JobForm: React.FC<JobFormProps> = ({
       salary_min: initialData?.salary_min || null,
       salary_max: initialData?.salary_max || null,
       salary_currency: initialData?.salary_currency || 'UGX',
-      is_active: initialData?.is_active ?? true,
+      is_active: initialData?.is_active ?? false,
       expires_at: initialData?.expires_at || null,
     },
   });
