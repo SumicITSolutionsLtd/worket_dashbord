@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card } from '../ui';
+import { Briefcase } from '@phosphor-icons/react';
 import type { TopJob } from '../../types/api.types';
-import { DUMMY_OPEN_POSITIONS } from '../../data/dashboardDummyData';
 
 const CHART_COLORS = [
   '#3b82f6', // primary-500
@@ -23,9 +24,6 @@ function toChartData(jobs: Array<{ title: string; applicants_count?: number }>) 
   }));
 }
 
-/** Fallback chart data so the donut always displays when no API data. */
-const FALLBACK_CHART_DATA = toChartData([...DUMMY_OPEN_POSITIONS]);
-
 interface OpenPositionsDonutProps {
   jobs?: TopJob[];
   isLoading?: boolean;
@@ -40,18 +38,16 @@ const OpenPositionsDonut: React.FC<OpenPositionsDonutProps> = ({
 }) => {
   const rawChartData = jobs?.length ? toChartData(jobs) : [];
   const totalFromRaw = rawChartData.reduce((sum, d) => sum + d.value, 0);
-  const useFallback = rawChartData.length === 0 || totalFromRaw === 0;
-  const chartData = useFallback ? FALLBACK_CHART_DATA : rawChartData;
-  const totalOpenings = chartData.reduce((sum, d) => sum + d.value, 0);
+  const hasData = rawChartData.length > 0 && totalFromRaw > 0;
 
   const cardClass = compact ? 'p-3' : 'p-4';
   const chartHeightClass = compact ? 'h-32 min-h-[120px]' : 'h-40 min-h-[160px]';
   const chartMinHeight = compact ? 120 : 160;
 
-  if (isLoading && rawChartData.length === 0) {
+  if (isLoading && !hasData) {
     return (
       <Card className={cardClass}>
-        <h3 className="font-semibold text-gray-900 text-sm mb-2">Open Position</h3>
+        <h3 className="font-semibold text-gray-900 text-sm mb-2">Open Positions</h3>
         <div className={`${chartHeightClass} flex items-center justify-center`}>
           <div className="w-8 h-8 rounded-full border-2 border-primary-200 border-t-primary-500 animate-spin" />
         </div>
@@ -59,9 +55,30 @@ const OpenPositionsDonut: React.FC<OpenPositionsDonutProps> = ({
     );
   }
 
+  if (!hasData) {
+    return (
+      <Card className={cardClass}>
+        <h3 className="font-semibold text-gray-900 text-sm mb-2">Open Positions</h3>
+        <div className={`${chartHeightClass} flex flex-col items-center justify-center text-gray-500`}>
+          <Briefcase weight="light" className="w-10 h-10 mb-2 text-gray-300" />
+          <p className="text-sm text-center">No openings yet</p>
+          <Link
+            to="/jobs/create"
+            className="text-primary-600 hover:text-primary-700 font-medium text-xs mt-1"
+          >
+            Post a job
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  const chartData = rawChartData;
+  const totalOpenings = chartData.reduce((sum, d) => sum + d.value, 0);
+
   return (
     <Card className={cardClass}>
-      <h3 className="font-semibold text-gray-900 text-sm mb-2">Open Position</h3>
+      <h3 className="font-semibold text-gray-900 text-sm mb-2">Open Positions</h3>
       <div className={`${chartHeightClass} relative`}>
         <ResponsiveContainer width="100%" height="100%" minHeight={chartMinHeight}>
           <PieChart>

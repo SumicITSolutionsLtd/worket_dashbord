@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ComposedChart,
   Bar,
@@ -14,20 +14,43 @@ import { Card } from '../ui';
 import { Button } from '../ui';
 import { Users, TrendUp, Funnel } from '@phosphor-icons/react';
 import type { DashboardStats } from '../../types/api.types';
-import {
-  DUMMY_MONTHLY_OVERVIEW,
-  DUMMY_OVERVIEW_TOTAL,
-  DUMMY_OVERVIEW_TREND_PERCENT,
-} from '../../data/dashboardDummyData';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+const MONTH_LABELS: Record<string, string> = {
+  '01': 'Jan', '02': 'Feb', '03': 'Mar', '04': 'Apr', '05': 'May', '06': 'Jun',
+  '07': 'Jul', '08': 'Aug', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dec',
+};
 
-function buildMonthlyData(total: number): { month: string; applicants: number }[] {
-  const useTotal = total <= 0 ? 112 : total;
-  const points = [0.21, 0.34, 0.46, 0.61, 0.76, 0.88, 1].map((p) =>
-    Math.round(useTotal * p)
-  );
-  return MONTHS.map((month, i) => ({ month, applicants: points[i] }));
+/** Aggregate application_trend (daily) into monthly buckets, last 7 months. */
+function buildMonthlyDataFromTrend(
+  application_trend: Array<{ date: string; count: number }>
+): { month: string; applicants: number }[] {
+  const byMonth: Record<string, number> = {};
+  for (const { date, count } of application_trend) {
+    const monthKey = date.slice(0, 7); // YYYY-MM
+    byMonth[monthKey] = (byMonth[monthKey] ?? 0) + count;
+  }
+  const sorted = Object.entries(byMonth).sort(([a], [b]) => a.localeCompare(b));
+  const last7 = sorted.slice(-7);
+  return last7.map(([ym]) => {
+    const monthNum = ym.slice(5, 7);
+    return {
+      month: MONTH_LABELS[monthNum] ?? monthNum,
+      applicants: byMonth[ym] ?? 0,
+    };
+  });
+}
+
+/** Compute simple period trend: last 7 days vs previous 7 days. Returns null if not enough data. */
+function computeTrendPercent(
+  application_trend: Array<{ date: string; count: number }>
+): number | null {
+  if (!application_trend.length) return null;
+  const sorted = [...application_trend].sort((a, b) => a.date.localeCompare(b.date));
+  const mid = Math.floor(sorted.length / 2);
+  const prev = sorted.slice(0, mid).reduce((s, d) => s + d.count, 0);
+  const curr = sorted.slice(mid).reduce((s, d) => s + d.count, 0);
+  if (prev === 0) return curr > 0 ? 100 : null;
+  return Math.round(((curr - prev) / prev) * 100);
 }
 
 const BAR_FILL = '#3b82f6';
@@ -41,21 +64,16 @@ interface ApplicationsOverviewChartProps {
 const ApplicationsOverviewChart: React.FC<ApplicationsOverviewChartProps> = ({
   stats,
 }) => {
-  const total =
-    stats == null
-      ? DUMMY_OVERVIEW_TOTAL
-      : (stats.pending_applications ?? 0) +
-        (stats.shortlisted_applications ?? 0) +
-        (stats.hired_applications ?? 0);
-  const trendPercent = DUMMY_OVERVIEW_TREND_PERCENT;
-  const chartData =
-    stats == null
-      ? [...DUMMY_MONTHLY_OVERVIEW]
-      : buildMonthlyData(
-          (stats.pending_applications ?? 0) +
-            (stats.shortlisted_applications ?? 0) +
-            (stats.hired_applications ?? 0)
-        );
+  const { chartData, total, trendPercent } = useMemo(() => {
+    if (stats == null || !stats.application_trend?.length) {
+      return { chartData: [] as { month: string; applicants: number }[], total: 0, trendPercent: null as number | null };
+    }
+    const chartData = buildMonthlyDataFromTrend(stats.application_trend);
+    const total = stats.total_applications ?? chartData.reduce((s, d) => s + d.applicants, 0);
+    const trendPercent = computeTrendPercent(stats.application_trend);
+    return { chartData, total, trendPercent };
+  }, [stats]);
+
   const showChart = chartData.length > 0 && chartData.some((d) => d.applicants > 0);
 
   if (!showChart) {
@@ -85,10 +103,12 @@ const ApplicationsOverviewChart: React.FC<ApplicationsOverviewChartProps> = ({
             <span className="text-2xl font-bold text-gray-900">
               {total.toLocaleString()}
             </span>
-            <span className="flex items-center gap-1 text-xs font-medium text-green-600">
-              <TrendUp weight="bold" className="w-3.5 h-3.5" />
-              +{trendPercent}% last year
-            </span>
+            {trendPercent != null && (
+              <span className={`flex items-center gap-1 text-xs font-medium ${trendPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <TrendUp weight="bold" className="w-3.5 h-3.5" />
+                {trendPercent >= 0 ? '+' : ''}{trendPercent}% vs previous period
+              </span>
+            )}
           </div>
         </div>
         <Button

@@ -81,10 +81,13 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
 
           {/* Stats */}
           <div className="flex items-center gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-1">
+            <Link
+              to={`/jobs/${job.id}/applications`}
+              className="flex items-center gap-1 hover:text-primary-600 transition-colors"
+            >
               <Users weight="bold" className="w-4 h-4" />
-              <span>{job.applicants_count} applicants</span>
-            </div>
+              <span>{job.applicants_count ?? 0} applicants</span>
+            </Link>
             <div className="flex items-center gap-1">
               <Clock weight="bold" className="w-4 h-4" />
               <span>Posted {formatRelativeTime(job.posted_at)}</span>
@@ -96,9 +99,16 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
       {/* Actions */}
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
         <button
-          onClick={() => onToggleStatus?.(job.id, !job.is_active)}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggleStatus?.(job.id, !job.is_active);
+          }}
           disabled={isToggling}
           className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+          aria-pressed={job.is_active}
+          aria-label={job.is_active ? 'Deactivate job' : 'Activate job'}
         >
           {job.is_active ? (
             <>
@@ -116,7 +126,7 @@ const EmployerJobCard: React.FC<EmployerJobCardProps> = ({
         <div className="flex items-center gap-2">
           <Link to={`/jobs/${job.id}/applications`}>
             <Button variant="secondary" size="sm" leftIcon={<Eye weight="bold" className="w-4 h-4" />}>
-              View
+              View applications
             </Button>
           </Link>
           <Link to={`/jobs/${job.id}/ai-shortlist`}>

@@ -71,7 +71,12 @@ export const jobService = {
     const response = await api.get(
       `/employer/jobs/${jobId}/applications/?${params.toString()}`
     );
-    return unwrapResponse<PaginatedResponse<JobApplication>>(response.data);
+    const raw = unwrapResponse<PaginatedResponse<JobApplication> | JobApplication[]>(response.data);
+    // Backend may return paginated { count, next, previous, results } or (when unpaginated) { status, data: array }
+    if (Array.isArray(raw)) {
+      return { count: raw.length, next: null, previous: null, results: raw };
+    }
+    return raw;
   },
 
   async getApplication(jobId: number, applicationId: number): Promise<JobApplication> {

@@ -180,6 +180,8 @@ export interface DashboardStats {
   pending_applications: number;
   shortlisted_applications: number;
   hired_applications: number;
+  /** Daily application counts (date ISO string, count). Used for chart and optional trend. */
+  application_trend?: Array<{ date: string; count: number }>;
 }
 
 export interface RecentApplication {
